@@ -61,7 +61,7 @@ def extract_document(
                     entity_type,
                     entity_text,
                     normalized_value,
-                    congit commit -m "feat: implement regex extractor for email, phone, and URL (#5)"fidence,
+                    confidence,
                     span_start,
                     span_end
                 )
