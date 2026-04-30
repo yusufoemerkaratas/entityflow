@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from app.api.routes.documents import router as documents_router
 
 from app.db.database import get_db
 
@@ -15,6 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(documents_router)
 
 @app.get("/")
 def read_root():
@@ -28,3 +30,4 @@ def health_check(db: Session = Depends(get_db)):
         return {"status": "ok", "db": "connected"}
     except Exception as exc:
         raise HTTPException(status_code=503, detail="database unavailable") from exc
+    
