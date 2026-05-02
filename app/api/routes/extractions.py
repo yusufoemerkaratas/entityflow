@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+
 from app.db.database import get_db
 from app.extractors.regex_extractor import RegexExtractor
+from app.extractors.spacy_extractor import SpacyExtractor
 
 router = APIRouter(tags=["extractions"])
 
@@ -13,10 +15,14 @@ def extract_document(
     extractor: str = Query(...),
     db: Session = Depends(get_db),
 ):
-    if extractor != "regex":
+    if extractor == "regex":
+        selected_extractor = RegexExtractor()
+    elif extractor == "spacy_de":
+        selected_extractor = SpacyExtractor()
+    else:
         raise HTTPException(
             status_code=400,
-            detail="Only the 'regex' extractor is supported right now.",
+            detail="Supported extractors are 'regex' and 'spacy_de'.",
         )
 
     document_row = db.execute(
@@ -33,8 +39,7 @@ def extract_document(
     if not document_row:
         raise HTTPException(status_code=404, detail="Document not found.")
 
-    regex_extractor = RegexExtractor()
-    extracted_entities = regex_extractor.extract(document_row["raw_text"])
+    extracted_entities = selected_extractor.extract(document_row["raw_text"])
 
     extraction_row = db.execute(
         text(
@@ -46,8 +51,8 @@ def extract_document(
         ),
         {
             "document_id": document_id,
-            "extractor_name": regex_extractor.name,
-            "extractor_version": regex_extractor.version,
+            "extractor_name": selected_extractor.name,
+            "extractor_version": selected_extractor.version,
             "processing_ms": 0,
         },
     ).mappings().first()
