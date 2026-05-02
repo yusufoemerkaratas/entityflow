@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.extractors.regex_extractor import RegexExtractor
 from app.extractors.spacy_extractor import SpacyExtractor
+from app.extractors.llm_extractor import LlmExtractor
 
 router = APIRouter(tags=["extractions"])
 
@@ -19,11 +20,12 @@ def extract_document(
         selected_extractor = RegexExtractor()
     elif extractor == "spacy_de":
         selected_extractor = SpacyExtractor()
+    elif extractor == "llm_mini":
+        selected_extractor = LlmExtractor()
     else:
         raise HTTPException(
             status_code=400,
-            detail="Supported extractors are 'regex' and 'spacy_de'.",
-        )
+            detail="Supported extractors are 'regex', 'spacy_de', and 'llm_mini'.")
 
     document_row = db.execute(
         text(
