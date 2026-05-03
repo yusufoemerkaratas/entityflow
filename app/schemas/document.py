@@ -14,3 +14,11 @@ class DocumentResponse(BaseModel):
     content_hash: str
     is_duplicate: bool
     uploaded_at: datetime
+
+
+class DocumentDetailResponse(BaseModel):
+    id: int
+    raw_text: str
+    source_type: str
+    char_count: int
+    uploaded_at: datetime
