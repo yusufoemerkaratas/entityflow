@@ -1,11 +1,11 @@
 import hashlib
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.schemas.document import DocumentCreate, DocumentResponse
+from app.schemas.document import DocumentCreate, DocumentDetailResponse, DocumentResponse
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -59,4 +59,29 @@ def create_document(payload: DocumentCreate, db: Session = Depends(get_db)):
         content_hash=inserted_document["content_hash"],
         is_duplicate=False,
         uploaded_at=inserted_document["uploaded_at"],
+    )
+
+
+@router.get("/{document_id}", response_model=DocumentDetailResponse)
+def get_document(document_id: int, db: Session = Depends(get_db)):
+    row = db.execute(
+        text(
+            """
+            SELECT id, raw_text, source_type, char_count, uploaded_at
+            FROM documents
+            WHERE id = :document_id
+            """
+        ),
+        {"document_id": document_id},
+    ).mappings().first()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Document not found.")
+
+    return DocumentDetailResponse(
+        id=row["id"],
+        raw_text=row["raw_text"],
+        source_type=row["source_type"],
+        char_count=row["char_count"],
+        uploaded_at=row["uploaded_at"],
     )

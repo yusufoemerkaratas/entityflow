@@ -1,5 +1,17 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useLocation, useParams } from "react-router-dom"
+
+import { getDocument, getDocumentExtractions } from "../api/client"
+import { ExtractorColumn } from "../components/ExtractorColumn"
+import { RawTextPanel } from "../components/RawTextPanel"
+import type {
+  ComparisonResponse,
+  DocumentDetail,
+  ExtractorName,
+  ReviewedEntity,
+} from "../types"
+
+import "./ResultsView.css"
 
 export function DocumentDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -8,6 +20,68 @@ export function DocumentDetailPage() {
     ?.isDuplicate
 
   const [showDuplicateInfo, setShowDuplicateInfo] = useState(isDuplicate ?? false)
+  const [documentDetail, setDocumentDetail] = useState<DocumentDetail | null>(
+    null,
+  )
+  const [comparison, setComparison] = useState<ComparisonResponse | null>(null)
+  const [hoveredEntity, setHoveredEntity] = useState<ReviewedEntity | null>(
+    null,
+  )
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const documentId = Number(id)
+  const isValidId = Number.isFinite(documentId) && documentId > 0
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadDocument() {
+      if (!isValidId) {
+        setError("Invalid document id.")
+        setLoading(false)
+        return
+      }
+
+      setLoading(true)
+      setError(null)
+      setHoveredEntity(null)
+
+      try {
+        const [doc, extractionResults] = await Promise.all([
+          getDocument(documentId),
+          getDocumentExtractions(documentId),
+        ])
+
+        if (!isMounted) return
+
+        setDocumentDetail(doc)
+        setComparison(extractionResults)
+      } catch (err) {
+        if (!isMounted) return
+        const message =
+          err instanceof Error ? err.message : "An unexpected error occurred."
+        setError(message)
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadDocument()
+
+    return () => {
+      isMounted = false
+    }
+  }, [documentId, isValidId])
+
+  const extractorOrder: ExtractorName[] = ["regex", "spacy_de", "llm_mini"]
+  const extractorLabels: Record<ExtractorName, string> = {
+    regex: "Regex",
+    spacy_de: "spaCy DE",
+    llm_mini: "Mini LLM",
+  }
 
   return (
     <section className="page-card">
@@ -40,24 +114,63 @@ export function DocumentDetailPage() {
       )}
 
       <div className="page-header">
-        <p className="eyebrow">Document detail</p>
+        <p className="eyebrow">Extractor comparison</p>
         <h2>Document #{id}</h2>
         <p>
-          This route is ready for the later document detail, extraction results,
-          and review UI.
+          Compare extractor outputs side by side and inspect how entities map to
+          the original raw text.
         </p>
+        {documentDetail && (
+          <div className="results-header-meta">
+            <span className="results-header-pill">
+              Source: {documentDetail.source_type}
+            </span>
+            <span className="results-header-pill">
+              {documentDetail.char_count.toLocaleString()} chars
+            </span>
+            <span className="results-header-pill">
+              Uploaded {new Date(documentDetail.uploaded_at).toLocaleString()}
+            </span>
+          </div>
+        )}
       </div>
 
-      <div className="info-panel">
-        <h3>Route parameter</h3>
-        <p>
-          The document id comes from the URL segment{" "}
-          <code>/documents/:id</code>.
-        </p>
-        <p>
-          Current route value: <strong>{id}</strong>
-        </p>
-      </div>
+      {loading && (
+        <div className="results-loading" role="status">
+          <span className="results-spinner" />
+          <div>Loading document and extraction results...</div>
+        </div>
+      )}
+
+      {error && !loading && (
+        <div className="results-error" role="alert">
+          <strong>Unable to load this document.</strong>
+          <span>{error}</span>
+        </div>
+      )}
+
+      {!loading && !error && documentDetail && (
+        <>
+          <RawTextPanel
+            rawText={documentDetail.raw_text}
+            hoveredEntity={hoveredEntity}
+            sourceType={documentDetail.source_type}
+            charCount={documentDetail.char_count}
+          />
+
+          <div className="results-grid">
+            {extractorOrder.map((extractorName) => (
+              <ExtractorColumn
+                key={extractorName}
+                extractorName={extractorName}
+                title={extractorLabels[extractorName]}
+                meta={comparison?.results?.[extractorName] ?? null}
+                onHover={setHoveredEntity}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       <Link className="button-link secondary" to="/">
         Back to home
