@@ -7,6 +7,8 @@ from app.extractors.regex_extractor import RegexExtractor
 from app.extractors.spacy_extractor import SpacyExtractor
 from app.extractors.llm_extractor import LlmExtractor
 
+from app.schemas.comparison import ComparisonResponse, ExtractionMeta, EntityOut
+
 router = APIRouter(tags=["extractions"])
 
 
@@ -112,4 +114,60 @@ def extract_document(
             }
             for entity in extracted_entities
         ],
-    }
+     }
+
+@router.get("/documents/{document_id}/extractions", response_model=ComparisonResponse)
+
+def get_comparison(document_id: int, db: Session = Depends(get_db)):
+    
+    doc = db.execute(
+        text("SELECT id FROM documents WHERE id = :document_id"),
+        {"document_id": document_id},
+    ).mappings().first()
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
+
+    extraction_rows = db.execute(
+        text("""
+            SELECT id, extractor_name, extractor_version
+            FROM extractions
+            WHERE document_id = :document_id
+            ORDER BY created_at ASC
+        """),
+        {"document_id": document_id},
+    ).mappings().all()
+
+    results = {}
+
+    for row in extraction_rows:
+        entity_rows = db.execute(
+            text("""
+                SELECT entity_type, entity_text, span_start, span_end,
+                       confidence, review_status
+                FROM entities
+                WHERE extraction_id = :extraction_id
+            """),
+            {"extraction_id": row["id"]},
+        ).mappings().all()
+
+        entities = [
+            EntityOut(
+                entity_type=e["entity_type"],
+                entity_text=e["entity_text"],
+                span_start=e["span_start"],
+                span_end=e["span_end"],
+                confidence=e["confidence"],
+                review_status=e["review_status"],
+            )
+            for e in entity_rows
+        ]
+
+        results[row["extractor_name"]] = ExtractionMeta(
+            extraction_id=row["id"],
+            extractor_version=row["extractor_version"],
+            entity_count=len(entities),
+            entities=entities,
+        )
+
+    return ComparisonResponse(document_id=document_id, results=results)
