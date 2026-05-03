@@ -143,7 +143,7 @@ def get_comparison(document_id: int, db: Session = Depends(get_db)):
     for row in extraction_rows:
         entity_rows = db.execute(
             text("""
-                SELECT entity_type, entity_text, span_start, span_end,
+                SELECT id, entity_type, entity_text, span_start, span_end,
                        confidence, review_status
                 FROM entities
                 WHERE extraction_id = :extraction_id
@@ -153,6 +153,7 @@ def get_comparison(document_id: int, db: Session = Depends(get_db)):
 
         entities = [
             EntityOut(
+                id=e["id"],
                 entity_type=e["entity_type"],
                 entity_text=e["entity_text"],
                 span_start=e["span_start"],

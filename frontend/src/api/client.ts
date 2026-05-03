@@ -6,6 +6,7 @@ import type {
   ExtractionRunResponse,
   ExtractorName,
   HealthResponse,
+  ReviewedEntity,
 } from "../types"
 
 const API_BASE_URL =
@@ -97,4 +98,14 @@ export function getDocumentExtractions(
 
 export function getDocument(documentId: number): Promise<DocumentDetail> {
   return requestJson<DocumentDetail>(`/documents/${documentId}`)
+}
+
+export function patchEntityReview(
+  entityId: number,
+  reviewStatus: "approved" | "rejected",
+): Promise<ReviewedEntity> {
+  return requestJson<ReviewedEntity>(`/entities/${entityId}/review`, {
+    method: "PATCH",
+    body: JSON.stringify({ review_status: reviewStatus }),
+  })
 }

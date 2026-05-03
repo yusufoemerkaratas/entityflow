@@ -9,6 +9,7 @@ export type ExtractedEntity = {
 }
 
 export type ReviewedEntity = ExtractedEntity & {
+  id: number
   review_status: string
 }
 

@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 
 class EntityOut(BaseModel):
+    id: int
     entity_type: str
     entity_text: str
     span_start: Optional[int] = None

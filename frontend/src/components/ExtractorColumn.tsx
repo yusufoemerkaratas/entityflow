@@ -7,6 +7,8 @@ type ExtractorColumnProps = {
   title: string
   meta: ExtractionMeta | null
   onHover: (entity: ReviewedEntity | null) => void
+  onReviewChange?: (entityId: number, status: "approved" | "rejected") => void
+  isReviewingEntity?: (entityId: number) => boolean
 }
 
 export function ExtractorColumn({
@@ -14,6 +16,8 @@ export function ExtractorColumn({
   title,
   meta,
   onHover,
+  onReviewChange,
+  isReviewingEntity,
 }: ExtractorColumnProps) {
   const entityCount = meta?.entity_count ?? 0
   const entities = meta?.entities ?? []
@@ -46,6 +50,8 @@ export function ExtractorColumn({
               key={`${extractorName}-${entity.entity_type}-${index}`}
               entity={entity}
               onHover={onHover}
+              onReviewChange={onReviewChange}
+              isReviewing={isReviewingEntity?.(entity.id) ?? false}
             />
           ))}
         </div>

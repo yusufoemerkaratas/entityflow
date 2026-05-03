@@ -224,6 +224,82 @@
   justify-content: space-between;
   color: var(--text);
   font-size: 0.8rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.entity-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.entity-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.review-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.review-pending {
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.16);
+}
+
+.review-approved {
+  color: #15803d;
+  background: rgba(34, 197, 94, 0.16);
+}
+
+.review-rejected {
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.16);
+}
+
+.entity-review-button {
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  background: var(--surface);
+  color: var(--text-heading);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.35rem 0.6rem;
+  transition: border-color 0.2s, background 0.2s, opacity 0.2s;
+}
+
+.entity-review-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.entity-review-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.entity-review-approve:hover:not(:disabled) {
+  border-color: #22c55e;
+}
+
+.entity-review-reject:hover:not(:disabled) {
+  border-color: #ef4444;
+}
+
+.results-review-error {
+  margin-bottom: 1rem;
 }
 
 .entity-type-email {
