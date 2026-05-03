@@ -19,8 +19,8 @@ export function HomePage() {
         <article className="feature-card">
           <h3>Documents</h3>
           <p>
-            Later, users will create or upload documents from this area and send
-            them to the backend.
+            Upload text or files to create documents, then send them through the
+            extraction pipeline.
           </p>
         </article>
 
@@ -41,8 +41,8 @@ export function HomePage() {
         </article>
       </div>
 
-      <Link className="button-link" to="/documents/1">
-        Open sample document route
+      <Link className="button-link" to="/upload">
+        Upload a document
       </Link>
     </section>
   )
