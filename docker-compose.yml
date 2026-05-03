@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: entityflow
+      POSTGRES_USER: entityflow
+      POSTGRES_PASSWORD: entityflow
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./app/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U entityflow -d entityflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+    environment:
+      DATABASE_URL: postgresql+psycopg2://entityflow:entityflow@db:5432/entityflow
+      LLM_PROVIDER: github
+      GITHUB_MODELS_ENDPOINT: https://models.github.ai/inference
+      GITHUB_MODEL_NAME: openai/gpt-4o-mini
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8000
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
