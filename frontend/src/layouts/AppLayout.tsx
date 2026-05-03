@@ -25,12 +25,12 @@ export function AppLayout() {
           </NavLink>
 
           <NavLink
-            to="/documents/1"
+            to="/upload"
             className={({ isActive }) =>
               isActive ? "nav-link nav-link-active" : "nav-link"
             }
           >
-            Sample document
+            Upload
           </NavLink>
         </nav>
       </header>

@@ -38,6 +38,15 @@ async function readErrorMessage(response: Response): Promise<string> {
       return data.detail
     }
 
+    if (Array.isArray(data.detail)) {
+      return data.detail
+        .map((err: { loc?: string[]; msg?: string }) => {
+          const field = err.loc?.slice(-1)[0] ?? "field"
+          return `${field}: ${err.msg ?? "invalid"}`
+        })
+        .join(" · ")
+    }
+
     return `Request failed with status ${response.status}`
   } catch {
     return `Request failed with status ${response.status}`
