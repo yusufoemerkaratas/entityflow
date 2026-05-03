@@ -102,6 +102,57 @@
   color: var(--text);
   line-height: 1.7;
 }
+.status-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  background: var(--surface-muted);
+}
+
+.status-card h3 {
+  margin: 0 0 0.25rem;
+  color: var(--text-heading);
+}
+
+.status-card p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.status-card-success {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.status-card-error {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.status-indicator {
+  width: 0.8rem;
+  height: 0.8rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  margin-top: 0.45rem;
+}
+
+.status-loading {
+  background: #f59e0b;
+}
+
+.status-online {
+  background: #22c55e;
+}
+
+.status-offline {
+  background: #ef4444;
+}
 
 .feature-grid {
   display: grid;

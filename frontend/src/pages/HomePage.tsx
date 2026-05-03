@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom"
+import { BackendStatus } from "../components/BackendStatus"
 
 export function HomePage() {
   return (
@@ -11,6 +12,8 @@ export function HomePage() {
           comparison, and review workflows.
         </p>
       </div>
+
+   <BackendStatus />
 
       <div className="feature-grid">
         <article className="feature-card">
