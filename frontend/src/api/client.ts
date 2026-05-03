@@ -1,5 +1,6 @@
 import type {
   ComparisonResponse,
+  DocumentDetail,
   DocumentCreateRequest,
   DocumentResponse,
   ExtractionRunResponse,
@@ -92,4 +93,8 @@ export function getDocumentExtractions(
   documentId: number,
 ): Promise<ComparisonResponse> {
   return requestJson<ComparisonResponse>(`/documents/${documentId}/extractions`)
+}
+
+export function getDocument(documentId: number): Promise<DocumentDetail> {
+  return requestJson<DocumentDetail>(`/documents/${documentId}`)
 }
