@@ -2,75 +2,106 @@ import json
 import sys
 import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+current_dir = os.path.dirname(__file__)
+project_root = os.path.join(current_dir, "..")
+sys.path.insert(0, project_root)
 
 from app.extractors.regex_extractor import RegexExtractor
 from app.extractors.spacy_extractor import SpacyExtractor
 
+try:
+    from app.extractors.llm_extractor import LlmExtractor
+    HAS_LLM = True
+except ImportError as e:
+    print(f"[WARNING] LlmExtractor could not be imported: {e}")
+    HAS_LLM = False
 
 def load_samples(path: str) -> list:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    """Reads JSON data from the given path and returns a Python list."""
+    with open(path, "r", encoding="utf-8") as file:
+        return json.load(file)
 
-
-def normalize(text: str) -> str:
+def normalize_text(text: str) -> str:
+    """Standardizes text to prevent comparison mismatch."""
+    if not isinstance(text, str):
+        return ""
     return text.strip().lower()
 
-
 def evaluate_extractor(extractor, samples: list) -> dict:
+    """Evaluates a single extractor against the test set."""
     total_expected = 0
     total_found = 0
     total_correct = 0
 
     for sample in samples:
-        expected = sample["expected"]
-        extracted = extractor.extract(sample["text"])
+        expected_list = sample.get("expected", [])
+        
+        try:
+            # Polymorphism: Calling .extract() without knowing the exact object type
+            extracted_objects = extractor.extract(sample["text"])
+        except Exception as e:
+            print(f"  [ERROR] {extractor.name} crashed while processing text: {str(e)}")
+            extracted_objects = []
 
-        extracted_normalized = [
-            (e.entity_type.lower(), normalize(e.entity_text))
-            for e in extracted
+        # List Comprehension: Extract types and normalized text into tuples
+        extracted_tuples = [
+            (obj.entity_type.lower(), normalize_text(obj.entity_text))
+            for obj in extracted_objects
         ]
 
-        for exp in expected:
+        # Match exact expectations
+        for exp in expected_list:
             total_expected += 1
-            exp_pair = (exp["entity_type"].lower(), normalize(exp["entity_text"]))
-            if exp_pair in extracted_normalized:
+            exp_pair = (exp["entity_type"].lower(), normalize_text(exp["entity_text"]))
+            
+            if exp_pair in extracted_tuples:
                 total_correct += 1
 
-        total_found += len(extracted)
+        total_found += len(extracted_objects)
 
+    # Prevent ZeroDivisionError
     precision = total_correct / total_found if total_found > 0 else 0.0
     recall = total_correct / total_expected if total_expected > 0 else 0.0
 
     return {
-        "total_expected": total_expected,
-        "total_found": total_found,
-        "total_correct": total_correct,
+        "expected": total_expected,
+        "found": total_found,
+        "correct": total_correct,
         "precision": round(precision, 2),
-        "recall": round(recall, 2),
+        "recall": round(recall, 2)
     }
 
-
 def print_results(name: str, results: dict):
-    print(f"\n{'='*40}")
-    print(f"Extractor : {name}")
-    print(f"  Expected : {results['total_expected']}")
-    print(f"  Found    : {results['total_found']}")
-    print(f"  Correct  : {results['total_correct']}")
-    print(f"  Precision: {results['precision']}")
-    print(f"  Recall   : {results['recall']}")
-    print(f"{'='*40}")
-
+    print(f"\n[{name.upper()}] RESULTS {'-'*20}")
+    print(f"  Expected : {results['expected']}")
+    print(f"  Found    : {results['found']}")
+    print(f"  Correct  : {results['correct']}")
+    print(f"  PRECISION: {results['precision']}  ")
+    print(f"  RECALL   : {results['recall']} ")
+    print("-" * 40)
 
 if __name__ == "__main__":
-    samples_path = os.path.join(os.path.dirname(__file__), "..", "data", "samples.json")
-    samples = load_samples(samples_path)
+    # 1. Locate and load test data
+    data_path = os.path.join(project_root, "data", "samples.json")
+    if not os.path.exists(data_path):
+        print(f"[FATAL] Test data not found: {data_path}")
+        sys.exit(1)
+        
+    print("[SYSTEM] Evaluation data loaded. Starting tests...\n")
+    test_samples = load_samples(data_path)
 
-    regex_extractor = RegexExtractor()
-    spacy_extractor = SpacyExtractor()
+    # 2. Instantiate extractors
+    extractors_to_test = [
+        RegexExtractor(),
+        SpacyExtractor()
+    ]
+    
+    # Conditionally add LLM
+    if HAS_LLM:
+        extractors_to_test.append(LlmExtractor())
 
-    regex_results = evaluate_extractor(regex_extractor, samples)
-    spacy_results = evaluate_extractor(spacy_extractor, samples)
-
-    print_results("RegexExtractor", regex_results)
-    print_results("SpacyExtractor", spacy_results)
+    # 3. Execute evaluation sequence
+    for ext in extractors_to_test:
+        print(f"[SYSTEM] Testing {ext.name}...")
+        ext_results = evaluate_extractor(ext, test_samples)
+        print_results(ext.name, ext_results)
