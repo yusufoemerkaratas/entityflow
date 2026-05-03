@@ -3,6 +3,8 @@ import type { ReviewedEntity } from "../types"
 type EntityCardProps = {
   entity: ReviewedEntity
   onHover: (entity: ReviewedEntity | null) => void
+  onReviewChange?: (entityId: number, status: "approved" | "rejected") => void
+  isReviewing?: boolean
 }
 
 const ENTITY_TYPE_CLASSES: Record<string, string> = {
@@ -47,7 +49,14 @@ function formatSpan(entity: ReviewedEntity): string {
   return "n/a"
 }
 
-export function EntityCard({ entity, onHover }: EntityCardProps) {
+export function EntityCard({
+  entity,
+  onHover,
+  onReviewChange,
+  isReviewing = false,
+}: EntityCardProps) {
+  const reviewDisabled = !onReviewChange || isReviewing
+
   return (
     <article
       className="entity-card"
@@ -65,8 +74,32 @@ export function EntityCard({ entity, onHover }: EntityCardProps) {
       </div>
       <p className="entity-text">{entity.entity_text}</p>
       <div className="entity-card-footer">
-        <span>Confidence</span>
-        <strong>{formatConfidence(entity.confidence)}</strong>
+        <div className="entity-card-meta">
+          <span>Confidence</span>
+          <strong>{formatConfidence(entity.confidence)}</strong>
+        </div>
+
+        <div className="entity-card-actions">
+          <span className={`review-badge review-${entity.review_status}`}>
+            {entity.review_status}
+          </span>
+          <button
+            type="button"
+            className="entity-review-button entity-review-approve"
+            onClick={() => onReviewChange?.(entity.id, "approved")}
+            disabled={reviewDisabled}
+          >
+            Approve
+          </button>
+          <button
+            type="button"
+            className="entity-review-button entity-review-reject"
+            onClick={() => onReviewChange?.(entity.id, "rejected")}
+            disabled={reviewDisabled}
+          >
+            Reject
+          </button>
+        </div>
       </div>
     </article>
   )
