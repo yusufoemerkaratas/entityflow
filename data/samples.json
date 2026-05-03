@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "text": "My name is Thomas Müller. I work at BMW AG as Senior Engineer. Email: thomas.mueller@bmw.de, Phone: +49 89 12345678",
+    "expected": [
+      {"entity_type": "email", "entity_text": "thomas.mueller@bmw.de"},
+      {"entity_type": "phone", "entity_text": "+49 89 12345678"},
+      {"entity_type": "person", "entity_text": "Thomas Müller"},
+      {"entity_type": "organization", "entity_text": "BMW AG"}
+    ]
+  },
+  {
+    "id": 2,
+    "text": "Contact us at info@heidelberg-materials.com or call +49 6221 481-0.",
+    "expected": [
+      {"entity_type": "email", "entity_text": "info@heidelberg-materials.com"},
+      {"entity_type": "phone", "entity_text": "+49 6221 481-0"}
+    ]
+  },
+  {
+    "id": 3,
+    "text": "Dr. Anna Schmidt is the CEO of Siemens AG in Munich.",
+    "expected": [
+      {"entity_type": "person", "entity_text": "Anna Schmidt"},
+      {"entity_type": "organization", "entity_text": "Siemens AG"},
+      {"entity_type": "location", "entity_text": "Munich"}
+    ]
+  },
+  {
+    "id": 4,
+    "text": "Visit our website: https://www.snapaddy.com/en for more information.",
+    "expected": [
+      {"entity_type": "url", "entity_text": "https://www.snapaddy.com/en"}
+    ]
+  },
+  {
+    "id": 5,
+    "text": "Peter Weber, CTO at SAP SE, can be reached at p.weber@sap.com",
+    "expected": [
+      {"entity_type": "person", "entity_text": "Peter Weber"},
+      {"entity_type": "organization", "entity_text": "SAP SE"},
+      {"entity_type": "email", "entity_text": "p.weber@sap.com"}
+    ]
+  },
+  {
+    "id": 6,
+    "text": "Our office is located at Berliner Strasse 42, Frankfurt am Main.",
+    "expected": [
+      {"entity_type": "location", "entity_text": "Frankfurt am Main"}
+    ]
+  }
+]
