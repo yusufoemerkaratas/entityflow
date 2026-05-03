@@ -10,6 +10,8 @@ Built as a portfolio project targeting NLP/data extraction roles (snapAddy, Heid
 
 Upload any unstructured text → EntityFlow runs it through three extraction layers → results are compared side by side → human reviewer confirms or rejects entities.
 
+The review step is intentionally lightweight: each extracted entity can be approved or rejected from the UI, and the choice is stored as `review_status` in the database. This keeps the workflow human-in-the-loop without turning the app into a full annotation platform.
+
 **Extracted entity types:** Person · Organization · Location · Email · Phone · URL
 
 ---
@@ -83,7 +85,7 @@ Full docs at `http://localhost:8000/docs` (Swagger UI).
 ```bash
 git clone https://github.com/yusufoemerkaratas/entityflow.git
 cd entityflow
-cp .env.example .env      # fill in DB credentials and API key
+cp .env.example .env      
 docker compose up --build
 ```
 
