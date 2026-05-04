@@ -9,14 +9,20 @@ import type {
   ReviewedEntity,
 } from "../types"
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ""
+
+function buildUrl(path: string) {
+  // If an explicit base URL is provided, join it with the path.
+  // Otherwise use a relative path so the dev/prod host is inferred.
+  if (!API_BASE_URL) return path
+  return `${API_BASE_URL.replace(/\/$/, "")}${path}`
+}
 
 async function requestJson<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(buildUrl(path), {
     headers: {
       "Content-Type": "application/json",
       ...options.headers,

@@ -315,7 +315,7 @@ export function DocumentDetailPage() {
               type="button"
               className="extractor-run-all"
               onClick={handleRunAll}
-              disabled={runningExtractors.size > 0 || loading}
+              disabled={runningExtractors.size > 0 || loading || !documentDetail}
             >
               {runningExtractors.size > 0 ? "Running..." : "Run all extractors"}
             </button>
@@ -329,7 +329,8 @@ export function DocumentDetailPage() {
                   disabled={
                     runningExtractors.has(extractorName) ||
                     runningExtractors.size > 0 ||
-                    loading
+                    loading ||
+                    !documentDetail
                   }
                 >
                   {runningExtractors.has(extractorName)
