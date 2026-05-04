@@ -2,6 +2,7 @@
 
 **NLP-based entity extraction pipeline** — converts unstructured text into structured entities using a multi-layer approach: regex baseline → spaCy NER → LLM fallback.
 
+Built as a portfolio project targeting NLP/data extraction roles (snapAddy, Heidelberg area).
 
 ---
 
@@ -36,7 +37,7 @@ The review step is intentionally lightweight: each extracted entity can be appro
 | **NLP** | spaCy · Regex · LLM API |
 | **Database** | PostgreSQL |
 | **Frontend** | React · TypeScript · Vite |
-| **DevOps** | Docker · Docker Compose |
+| **DevOps** | Docker · Docker Compose · GitHub Actions CI |
 | **Testing** | pytest · httpx |
 
 ---
@@ -94,10 +95,14 @@ App runs at `http://localhost:5173` · API at `http://localhost:8000/docs`
 
 ## Screenshots
 
-Add 1-2 screenshots that show the upload flow and the extraction comparison view.
+- **Upload Page**
+![Upload Page](docs/screenshots/upload_page.png)
 
-- Upload page
-- Comparison / review page
+- **Extractor Comparison View**
+![Extractor Comparison View](docs/screenshots/comparison_view.png)
+
+- **Entity Review in Action**
+![Entity Review](docs/screenshots/entity_review.png)
 
 ---
 
@@ -134,6 +139,12 @@ Optional for LLM extraction:
 - `LLM_API_KEY`
 - `LLM_BASE_URL`
 - `LLM_MODEL_NAME`
+
+---
+
+## Demo Script
+
+See [docs/demo-script.md](docs/demo-script.md).
 
 ---
 

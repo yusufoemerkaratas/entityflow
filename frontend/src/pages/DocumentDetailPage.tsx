@@ -224,9 +224,9 @@ export function DocumentDetailPage() {
   return (
     <section className="page-card">
       {showDuplicateInfo && (
-        <div className="status-card status-card-duplicate">
+        <div className="status-card" style={{ borderColor: "var(--accent)", background: "var(--accent-bg)" }}>
           <div className="status-indicator status-online" />
-          <div className="status-card-body">
+          <div style={{ flex: 1 }}>
             <h3>Duplicate document detected</h3>
             <p>
               This text was already uploaded. You have been redirected to the
@@ -236,7 +236,14 @@ export function DocumentDetailPage() {
           <button
             type="button"
             onClick={() => setShowDuplicateInfo(false)}
-            className="status-card-dismiss"
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--text)",
+              cursor: "pointer",
+              fontSize: "1.2rem",
+              padding: "0.25rem",
+            }}
             aria-label="Dismiss"
           >
             ✕
@@ -308,9 +315,7 @@ export function DocumentDetailPage() {
               type="button"
               className="extractor-run-all"
               onClick={handleRunAll}
-              disabled={
-                runningExtractors.size > 0 || loading || !documentDetail
-              }
+              disabled={runningExtractors.size > 0 || loading || !documentDetail}
             >
               {runningExtractors.size > 0 ? "Running..." : "Run all extractors"}
             </button>
@@ -324,7 +329,8 @@ export function DocumentDetailPage() {
                   disabled={
                     runningExtractors.has(extractorName) ||
                     runningExtractors.size > 0 ||
-                    loading
+                    loading ||
+                    !documentDetail
                   }
                 >
                   {runningExtractors.has(extractorName)

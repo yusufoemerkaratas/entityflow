@@ -22,8 +22,8 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg2://entityflow:entityflow@db:5432/entityflow
       LLM_API_KEY: ${LLM_API_KEY}
-      LLM_BASE_URL: https://models.github.ai/inference/chat/completions
-      LLM_MODEL_NAME: gpt-4o-mini
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_MODEL_NAME: ${LLM_MODEL}
     ports:
       - "8000:8000"
     depends_on:

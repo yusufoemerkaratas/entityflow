@@ -1,22 +1,22 @@
 :root {
-  --text: #475569;
-  --text-heading: #0f172a;
-  --background: #f8fafc;
+  --text: #2f3a45;
+  --text-heading: #002b49;
+  --background: #ffffff;
   --surface: #ffffff;
-  --surface-muted: #f1f5f9;
-  --border: #e2e8f0;
-  --code-bg: #f1f5f9;
-  --accent: #4f46e5;
-  --accent-dark: #4338ca;
-  --accent-bg: rgba(79, 70, 229, 0.1);
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+  --surface-muted: #f2f2f2;
+  --border: #e5e7eb;
+  --code-bg: #f2f2f2;
+  --accent: #00c2ff;
+  --accent-dark: #0099cc;
+  --accent-bg: rgba(0, 194, 255, 0.15);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px,
+    rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: "Inter", system-ui, -apple-system, sans-serif;
+  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  font: 15px/1.6 var(--sans);
+  font: 18px/145% var(--sans);
   color: var(--text);
   background: var(--background);
   font-synthesis: none;
@@ -27,19 +27,19 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #94a3b8;
+    --text: #cbd5e1;
     --text-heading: #f8fafc;
-    --background: #0f172a;
-    --surface: #1e293b;
-    --surface-muted: #334155;
-    --border: #475569;
-    --code-bg: #1e293b;
-    --accent: #818cf8;
-    --accent-dark: #6366f1;
-    --accent-bg: rgba(99, 102, 241, 0.15);
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    --background: #0b1620;
+    --surface: #112233;
+    --surface-muted: #0f1b26;
+    --border: #1f2f3a;
+    --code-bg: #0f1b26;
+    --accent: #00c2ff;
+    --accent-dark: #0099cc;
+    --accent-bg: rgba(0, 194, 255, 0.2);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px,
+      rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
   }
 }
 
