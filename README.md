@@ -178,4 +178,4 @@ Labels used: `setup` · `backend` · `nlp` · `frontend` · `evaluation` · `dev
 ## Author
 
 **Yusuf Ömer Karataş** — Informatik @ THWS Würzburg  
-[LinkedIn](https://www.linkedin.com/in/yusuf-ömer-karatas-330952219) · [yusufoemerkaratas@study.thws.de](mailto:yusufoemerkaratas@study.thws.de)
+[LinkedIn](https://www.linkedin.com/in/yusuf-ömer-karatas-330952219) · [yusufoemer.karatas@study.thws.de](mailto:yusufoemer.karatas@study.thws.de)
