@@ -45,9 +45,9 @@ export function ExtractorColumn({
         <div className="extractor-empty">{emptyMessage}</div>
       ) : (
         <div className="entity-list">
-          {entities.map((entity, index) => (
+          {entities.map((entity) => (
             <EntityCard
-              key={`${extractorName}-${entity.entity_type}-${index}`}
+              key={`${extractorName}-${entity.id}`}
               entity={entity}
               onHover={onHover}
               onReviewChange={onReviewChange}
