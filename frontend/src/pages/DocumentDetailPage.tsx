@@ -5,6 +5,7 @@ import {
   getDocument,
   getDocumentExtractions,
   patchEntityReview,
+  runExtraction,
 } from "../api/client"
 import { ExtractorColumn } from "../components/ExtractorColumn"
 import { RawTextPanel } from "../components/RawTextPanel"
@@ -32,6 +33,10 @@ export function DocumentDetailPage() {
     null,
   )
   const [reviewError, setReviewError] = useState<string | null>(null)
+  const [extractionError, setExtractionError] = useState<string | null>(null)
+  const [runningExtractors, setRunningExtractors] = useState<Set<ExtractorName>>(
+    () => new Set(),
+  )
   const [pendingReviewIds, setPendingReviewIds] = useState<Set<number>>(
     () => new Set(),
   )
@@ -54,6 +59,7 @@ export function DocumentDetailPage() {
       setLoading(true)
       setError(null)
       setReviewError(null)
+      setExtractionError(null)
       setHoveredEntity(null)
 
       try {
@@ -90,6 +96,41 @@ export function DocumentDetailPage() {
     regex: "Regex",
     spacy_de: "spaCy DE",
     llm_mini: "Mini LLM",
+  }
+
+  async function refreshExtractions() {
+    const extractionResults = await getDocumentExtractions(documentId)
+    setComparison(extractionResults)
+  }
+
+  async function handleRunExtractor(extractorName: ExtractorName) {
+    if (!isValidId || loading) return
+
+    setExtractionError(null)
+    setRunningExtractors((current) => new Set(current).add(extractorName))
+
+    try {
+      await runExtraction(documentId, extractorName)
+      await refreshExtractions()
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to run extractor."
+      setExtractionError(message)
+    } finally {
+      setRunningExtractors((current) => {
+        const next = new Set(current)
+        next.delete(extractorName)
+        return next
+      })
+    }
+  }
+
+  async function handleRunAll() {
+    if (!isValidId || loading) return
+
+    for (const extractorName of extractorOrder) {
+      await handleRunExtractor(extractorName)
+    }
   }
 
   function replaceEntityReviewStatus(
@@ -246,6 +287,13 @@ export function DocumentDetailPage() {
         </div>
       )}
 
+      {extractionError && !loading && !error && (
+        <div className="results-error results-review-error" role="alert">
+          <strong>Extraction failed.</strong>
+          <span>{extractionError}</span>
+        </div>
+      )}
+
       {!loading && !error && documentDetail && (
         <>
           <RawTextPanel
@@ -254,6 +302,38 @@ export function DocumentDetailPage() {
             sourceType={documentDetail.source_type}
             charCount={documentDetail.char_count}
           />
+
+          <div className="extractor-actions">
+            <button
+              type="button"
+              className="extractor-run-all"
+              onClick={handleRunAll}
+              disabled={
+                runningExtractors.size > 0 || loading || !documentDetail
+              }
+            >
+              {runningExtractors.size > 0 ? "Running..." : "Run all extractors"}
+            </button>
+            <div className="extractor-run-group">
+              {extractorOrder.map((extractorName) => (
+                <button
+                  key={extractorName}
+                  type="button"
+                  className="extractor-run-button"
+                  onClick={() => handleRunExtractor(extractorName)}
+                  disabled={
+                    runningExtractors.has(extractorName) ||
+                    runningExtractors.size > 0 ||
+                    loading
+                  }
+                >
+                  {runningExtractors.has(extractorName)
+                    ? "Running..."
+                    : `Run ${extractorLabels[extractorName]}`}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="results-grid">
             {extractorOrder.map((extractorName) => (
