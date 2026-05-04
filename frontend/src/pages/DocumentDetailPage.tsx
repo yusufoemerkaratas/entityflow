@@ -183,9 +183,9 @@ export function DocumentDetailPage() {
   return (
     <section className="page-card">
       {showDuplicateInfo && (
-        <div className="status-card" style={{ borderColor: "var(--accent)", background: "var(--accent-bg)" }}>
+        <div className="status-card status-card-duplicate">
           <div className="status-indicator status-online" />
-          <div style={{ flex: 1 }}>
+          <div className="status-card-body">
             <h3>Duplicate document detected</h3>
             <p>
               This text was already uploaded. You have been redirected to the
@@ -195,14 +195,7 @@ export function DocumentDetailPage() {
           <button
             type="button"
             onClick={() => setShowDuplicateInfo(false)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--text)",
-              cursor: "pointer",
-              fontSize: "1.2rem",
-              padding: "0.25rem",
-            }}
+            className="status-card-dismiss"
             aria-label="Dismiss"
           >
             ✕
