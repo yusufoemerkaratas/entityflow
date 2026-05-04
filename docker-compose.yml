@@ -21,9 +21,9 @@ services:
       context: .
     environment:
       DATABASE_URL: postgresql+psycopg2://entityflow:entityflow@db:5432/entityflow
-      LLM_PROVIDER: github
-      GITHUB_MODELS_ENDPOINT: https://models.github.ai/inference
-      GITHUB_MODEL_NAME: openai/gpt-4o-mini
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_MODEL_NAME: ${LLM_MODEL}
     ports:
       - "8000:8000"
     depends_on:
