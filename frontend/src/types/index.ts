@@ -1,6 +1,5 @@
 export type {
   DocumentCreateRequest,
-  DocumentDetail,
   DocumentResponse,
 } from "./document"
 
