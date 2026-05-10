@@ -1,14 +1,14 @@
 /* ── Tab Switcher ─────────────────────────────────── */
 
 .upload-page-card-vision {
-  background: #000;
-  border-color: #16351f;
-  box-shadow: none;
+  background: #05070a;
+  border-color: rgba(148, 163, 184, 0.22);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
 }
 
 .upload-page-card-vision > .page-header h2,
 .upload-page-card-vision > .page-header p {
-  color: #eaffef;
+  color: #f8fafc;
 }
 
 .upload-tabs {
@@ -20,19 +20,19 @@
 }
 
 .upload-page-card-vision .upload-tabs {
-  border-bottom-color: #16351f;
+  border-bottom-color: rgba(148, 163, 184, 0.22);
 }
 
 .upload-page-card-vision .upload-tab {
-  color: #8ccf9c;
+  color: #cbd5e1;
 }
 
 .upload-page-card-vision .upload-tab-active {
-  color: #39ff88;
+  color: #5eead4;
 }
 
 .upload-page-card-vision .upload-tab-active::after {
-  background: #39ff88;
+  background: #12c7e8;
 }
 
 .upload-tab {
@@ -77,7 +77,7 @@
   min-height: 220px;
   padding: 1.25rem;
   border: 1px solid var(--border);
-  border-radius: 0;
+  border-radius: 1rem;
   background: var(--background);
   color: var(--text-heading);
   font: inherit;
@@ -110,9 +110,8 @@
   gap: 1rem;
   min-height: 220px;
   padding: 3rem 2rem;
-  border: 0;
-  border-left: 1px solid var(--border);
-  border-radius: 0;
+  border: 2px dashed var(--border);
+  border-radius: 1.25rem;
   background: var(--background);
   text-align: center;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -153,7 +152,7 @@
   gap: 0.5rem;
   padding: 0.6rem 1.25rem;
   border: 1px solid var(--border);
-  border-radius: 0;
+  border-radius: 0.75rem;
   background: var(--surface);
   color: var(--text-heading);
   font-size: 0.9rem;
@@ -187,7 +186,7 @@
   gap: 0.5rem;
   margin-top: 0.5rem;
   padding: 0.5rem 1rem;
-  border-radius: 0;
+  border-radius: 0.75rem;
   background: var(--surface);
   border: 1px solid var(--accent);
   color: var(--accent-dark);
@@ -237,20 +236,20 @@
   gap: 0.5rem;
   padding: 0.85rem 2rem;
   border: none;
-  border-radius: 0;
+  border-radius: 0.75rem;
   background: var(--accent);
-  color: #041007;
+  color: #041014;
   font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: none;
+  box-shadow: 0 4px 10px var(--accent-bg);
 }
 
 .upload-submit:hover:not(:disabled) {
   background: var(--accent-dark);
   transform: translateY(-2px);
-  box-shadow: none;
+  box-shadow: 0 8px 15px var(--accent-bg);
 }
 
 .upload-submit:disabled {
@@ -266,8 +265,8 @@
   display: inline-block;
   width: 1.2rem;
   height: 1.2rem;
-  border: 2px solid #39ff88;
-  border-top-color: #39ff88;
+  border: 2px solid rgba(0, 194, 255, 0.25);
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: upload-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
@@ -293,7 +292,7 @@
   gap: 0.75rem;
   margin-top: 1.5rem;
   padding: 1rem 1.25rem;
-  border-radius: 0;
+  border-radius: 1rem;
   font-size: 0.95rem;
   line-height: 1.6;
   font-weight: 500;
