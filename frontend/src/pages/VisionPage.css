@@ -1,0 +1,535 @@
+.vision-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.vision-toolbar {
+  display: grid;
+  grid-template-columns: minmax(240px, 360px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.vision-upload-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 6.5rem;
+  padding: 1.2rem 1.3rem;
+  border: 1px dashed var(--border);
+  border-radius: 1.25rem;
+  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-muted) 100%);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vision-upload-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.vision-upload-icon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.9rem;
+  background: var(--accent-bg);
+  font-size: 1.25rem;
+}
+
+.vision-upload-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.vision-upload-copy strong,
+.vision-upload-copy span {
+  line-height: 1.3;
+}
+
+.vision-upload-copy strong {
+  color: var(--text-heading);
+}
+
+.vision-file-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.vision-toolbar-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  min-width: 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.vision-primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 12rem;
+  padding: 0.9rem 1.25rem;
+  border: 0;
+  border-radius: 0.9rem;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+}
+
+.vision-primary-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--accent-dark);
+}
+
+.vision-primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.vision-file-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  color: var(--text);
+  text-align: right;
+}
+
+.vision-file-meta strong {
+  color: var(--text-heading);
+}
+
+.vision-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.vision-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.vision-summary-card span {
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.vision-summary-card strong {
+  color: var(--text-heading);
+  font-size: 1.25rem;
+}
+
+.vision-stat-pending {
+  border-top: 3px solid #f59e0b;
+}
+
+.vision-stat-accepted {
+  border-top: 3px solid #22c55e;
+}
+
+.vision-stat-rejected {
+  border-top: 3px solid #ef4444;
+}
+
+.vision-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.vision-preview-panel,
+.vision-review-panel {
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.vision-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.vision-panel-header h3 {
+  margin: 0.2rem 0 0;
+  color: var(--text-heading);
+  font-size: 1.2rem;
+}
+
+.vision-panel-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent-dark);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vision-panel-chip-local {
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+}
+
+.vision-review-note {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 0.9rem;
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.vision-stage {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: #08111b;
+}
+
+.vision-image {
+  display: block;
+  max-width: 100%;
+  max-height: 640px;
+  width: auto;
+  height: auto;
+}
+
+.vision-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.vision-box {
+  position: absolute;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 0;
+  border: 2px solid rgba(0, 194, 255, 0.9);
+  border-radius: 0.5rem;
+  background: rgba(0, 194, 255, 0.08);
+  color: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.vision-box:hover,
+.vision-box-active {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18);
+}
+
+.vision-box-label {
+  position: absolute;
+  top: -1.7rem;
+  left: 0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.4rem;
+  background: rgba(8, 17, 27, 0.9);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.vision-status-pending {
+  border-color: #f59e0b;
+}
+
+.vision-status-accepted {
+  border-color: #22c55e;
+}
+
+.vision-status-rejected {
+  border-color: #ef4444;
+}
+
+.vision-empty-state,
+.vision-empty-table {
+  display: grid;
+  place-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--text);
+  border: 1px dashed var(--border);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-muted) 100%);
+}
+
+.vision-empty-state h3,
+.vision-empty-table h3 {
+  margin: 0;
+  color: var(--text-heading);
+}
+
+.vision-empty-state p,
+.vision-empty-table p {
+  margin: 0;
+  max-width: 30rem;
+  line-height: 1.6;
+}
+
+.vision-empty-icon {
+  font-size: 2rem;
+}
+
+.vision-active-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface-muted);
+}
+
+.vision-active-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.vision-active-label {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vision-active-heading h4 {
+  margin: 0.25rem 0 0;
+  color: var(--text-heading);
+  font-size: 1.1rem;
+}
+
+.vision-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.vision-status-pill.vision-status-pending {
+  background: #f59e0b;
+}
+
+.vision-status-pill.vision-status-accepted {
+  background: #22c55e;
+}
+
+.vision-status-pill.vision-status-rejected {
+  background: #ef4444;
+}
+
+.vision-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.vision-details-grid div {
+  padding: 0.85rem 0.9rem;
+  border-radius: 0.9rem;
+  background: var(--surface);
+}
+
+.vision-details-grid dt {
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.vision-details-grid dd {
+  margin: 0.25rem 0 0;
+  color: var(--text-heading);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.vision-review-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.vision-action-button,
+.vision-mini-button {
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  background: var(--surface);
+  color: var(--text-heading);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.vision-action-button {
+  flex: 1;
+  padding: 0.85rem 1rem;
+}
+
+.vision-mini-button {
+  padding: 0.55rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.vision-action-button:hover,
+.vision-mini-button:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.vision-action-accept:hover,
+.vision-mini-button:not(.vision-mini-button-danger):hover {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.vision-action-reject:hover,
+.vision-mini-button-danger:hover {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.vision-table-wrap {
+  overflow-x: auto;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+}
+
+.vision-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.vision-table thead {
+  background: var(--surface-muted);
+}
+
+.vision-table th,
+.vision-table td {
+  padding: 0.85rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.vision-table th {
+  color: var(--text-heading);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.vision-table td {
+  color: var(--text);
+}
+
+.vision-table-row-active {
+  background: rgba(0, 194, 255, 0.08);
+}
+
+.vision-table-row-active td {
+  color: var(--text-heading);
+}
+
+.vision-table tbody tr {
+  cursor: pointer;
+}
+
+.vision-row-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.vision-table-empty {
+  text-align: center !important;
+  padding: 1.5rem !important;
+}
+
+@media (max-width: 1080px) {
+  .vision-toolbar,
+  .vision-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .vision-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .vision-toolbar-actions,
+  .vision-panel-header,
+  .vision-active-heading,
+  .vision-review-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .vision-primary-button {
+    width: 100%;
+  }
+
+  .vision-file-meta {
+    text-align: left;
+  }
+
+  .vision-summary-grid,
+  .vision-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vision-box-label {
+    top: -1.4rem;
+    font-size: 0.65rem;
+  }
+}
