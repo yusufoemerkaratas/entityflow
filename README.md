@@ -183,6 +183,7 @@ The vision mode demo uses sample images:
 ## Local Demo
 
 To try the computer vision workflow locally, see [docs/cv-demo-script.md](docs/cv-demo-script.md) for step-by-step instructions.
+For a CV-only architecture view, see [docs/cv-architecture.md](docs/cv-architecture.md).
 
 ---
 
