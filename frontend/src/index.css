@@ -13,8 +13,8 @@
     rgba(0, 0, 0, 0.42) 0 10px 18px -8px,
     transparent 0 0 0 0;
 
-  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
+  --sans: var(--mono);
 
   font: 18px/145% var(--sans);
   color: var(--text);

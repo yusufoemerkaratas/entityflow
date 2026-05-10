@@ -17,7 +17,7 @@
 }
 
 .vision-page.page-card {
-  padding: 2rem;
+  padding: 0;
   background: #000;
   border-color: var(--vision-border);
   border-radius: 0;
@@ -48,7 +48,7 @@
 
 .vision-toolbar {
   display: grid;
-  grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1.3fr);
+  grid-template-columns: minmax(220px, 0.45fr) minmax(0, 1fr);
   gap: 1rem;
   align-items: stretch;
 }
@@ -57,8 +57,8 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  min-height: 6.5rem;
-  padding: 1.2rem 1.3rem;
+  min-height: 4.75rem;
+  padding: 0.75rem 1rem;
   border: 0;
   border-left: 1px solid var(--vision-border);
   border-radius: 0;
@@ -114,7 +114,7 @@
   gap: 1rem;
   align-items: center;
   min-width: 0;
-  padding: 1rem 1.25rem;
+  padding: 0.75rem 1rem;
   border: 0;
   border-left: 1px solid var(--vision-border);
   border-radius: 0;
@@ -180,7 +180,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  padding: 1rem 1.1rem;
+  padding: 0.75rem 1rem;
   border: 0;
   border-left: 1px solid var(--vision-border);
   border-radius: 0;
@@ -209,7 +209,7 @@
 .vision-preview-panel,
 .vision-result-panel {
   min-width: 0;
-  padding: 1.25rem;
+  padding: 1rem;
   border: 0;
   border-left: 1px solid var(--vision-border);
   border-radius: 0;

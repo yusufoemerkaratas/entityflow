@@ -22,7 +22,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
-  padding: 1.25rem 4rem;
+  padding: 1.25rem 2rem;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   box-shadow: none;
@@ -34,7 +34,7 @@
 .app-header h1 {
   margin: 0;
   color: var(--text-heading);
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.03em;
 }
@@ -87,28 +87,28 @@
 }
 
 .app-main {
-  width: min(1100px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: 3rem 0;
+  width: 100%;
+  margin: 0;
+  padding: 2rem;
 }
 
 .page-card {
   border: 0;
   border-radius: 0;
-  padding: 3rem;
+  padding: 0;
   background: var(--surface);
   box-shadow: none;
 }
 
 .page-header {
-  max-width: 48rem;
-  margin-bottom: 3rem;
+  max-width: none;
+  margin-bottom: 2rem;
 }
 
 .page-header h2 {
   margin: 0.25rem 0 1rem;
   color: var(--text-heading);
-  font-size: 2.25rem;
+  font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.03em;
 }
@@ -117,7 +117,7 @@
   margin: 0;
   color: var(--text);
   line-height: 1.7;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
 }
 
 .status-card {
@@ -127,7 +127,7 @@
   border: 0;
   border-left: 2px solid var(--border);
   border-radius: 0;
-  padding: 1.25rem;
+  padding: 0.75rem 1rem;
   margin-bottom: 2rem;
   background: var(--surface);
   box-shadow: none;
@@ -169,8 +169,8 @@
 
 .feature-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
   margin-bottom: 2rem;
 }
 
@@ -179,7 +179,7 @@
   border: 0;
   border-left: 1px solid var(--border);
   border-radius: 0;
-  padding: 1.75rem;
+  padding: 0.75rem 1rem;
   background: var(--surface);
   box-shadow: none;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -196,7 +196,7 @@
   margin: 0 0 0.5rem;
   color: var(--text-heading);
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .feature-card p,
@@ -210,7 +210,7 @@
   display: inline-flex;
   align-items: center;
   border-radius: 0.3rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.65rem 1rem;
   color: #041007;
   background: var(--accent);
   font-weight: 600;
@@ -261,6 +261,6 @@ code {
     grid-template-columns: 1fr;
   }
   .page-card {
-    padding: 1.5rem;
+    padding: 0;
   }
 }
