@@ -6,7 +6,7 @@ from app.vision.preprocessing import (
     decode_image_bytes,
     validate_image_content_type,
 )
-from app.vision.schemas import VisionInspectionResponse
+from app.schemas.vision import VisionInspectionResponse
 
 
 router = APIRouter(prefix="/vision", tags=["vision"])

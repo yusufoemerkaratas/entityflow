@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from app.vision.preprocessing import PreprocessedImage, preprocess_for_inspection
-from app.vision.schemas import BoundingBox, VisualDetection
+from app.schemas.vision import BoundingBox, VisualDetection
 
 
 MIN_REGION_AREA_RATIO = 0.0005
