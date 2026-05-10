@@ -145,6 +145,8 @@ App runs at `http://localhost:5173` · API at `http://localhost:8000/docs`
 
 ## Screenshots
 
+### Text Extraction Mode
+
 - **Upload Page**
 ![Upload Page](docs/screenshots/upload_page.png)
 
@@ -153,6 +155,24 @@ App runs at `http://localhost:5173` · API at `http://localhost:8000/docs`
 
 - **Entity Review in Action**
 ![Entity Review](docs/screenshots/entity_review.png)
+
+### Computer Vision Mode
+
+- **Vision Upload**
+![Vision Upload](docs/screenshots/vision-upload.png)
+
+- **Vision Inspection Result**
+![Vision Result](docs/screenshots/vision-result.png)
+
+## Demo Images
+
+The vision mode demo uses sample images:
+- [Sample Product](docs/demo-images/sample-product.png)
+- [Sample Product Variant](docs/demo-images/sample-product-variant.png)
+
+## Local Demo
+
+To try the computer vision workflow locally, see [docs/cv-demo-script.md](docs/cv-demo-script.md) for step-by-step instructions.
 
 ---
 
