@@ -19,7 +19,7 @@ The review flow is human-in-the-loop in both modes. Text entities and visual det
 
 ## Computer Vision Mode
 
-The vision mode is designed as a portfolio-ready showcase for internship applications: it demonstrates image upload, classical computer vision preprocessing, region proposal generation, persistence, and human review in one compact workflow. Instead of claiming full production object detection, it intentionally uses a lightweight OpenCV contour pipeline so the system design stays easy to explain in demos and interviews.
+The vision mode is designed as a portfolio-ready showcase for internship applications: it demonstrates image upload, classical computer vision preprocessing, region proposal generation, persistence, and human review in one compact workflow. Instead of claiming full production object detection, it intentionally uses a lightweight OpenCV contour pipeline so the system design stays easy to explain in demos and interviews. This also makes its limits explicit: it works best as a transparent inspection demo on high-contrast images, not as a replacement for a trained detector in complex real-world scenes.
 
 Pipeline overview:
 
@@ -42,6 +42,7 @@ Pipeline overview:
 | **LlmExtractor** | LLM API with structured prompt | ~0.90 | ~0.95 | Best recall for complex titles and company names. |
 
 > Metrics measured against a static golden set of 10 manually verified samples.  
+> The evaluation compares extractor outputs against hand-checked reference entities in `data/samples.json`, so the table is intended as a small reproducible benchmark rather than a broad production claim.  
 > Run `python scripts/evaluate.py` to see live metrics on your local `data/samples.json`.
 
 ---
