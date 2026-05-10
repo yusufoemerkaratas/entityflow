@@ -138,31 +138,6 @@ export function VisionPage({ embedded = false }: VisionPageProps) {
     }
   }
 
-  const summaryItems = [
-    {
-      label: "Image size",
-      value: ocrResult
-        ? `${ocrResult.image_width} × ${ocrResult.image_height}`
-        : "Waiting for OCR",
-    },
-    {
-      label: "Characters",
-      value: ocrResult ? ocrResult.char_count.toLocaleString() : "0",
-    },
-    {
-      label: "OCR engine",
-      value: ocrResult?.engine ?? "Not run yet",
-    },
-    {
-      label: "Status",
-      value: ocrResult
-        ? ocrResult.is_empty
-          ? "No text found"
-          : "Text extracted"
-        : "Idle",
-    },
-  ]
-
   const allEntities = pipelineResult
     ? Object.entries(pipelineResult.results).flatMap(([extractorName, entities]) =>
         entities.map((entity) => ({ ...entity, extractorName })),
@@ -266,15 +241,6 @@ export function VisionPage({ embedded = false }: VisionPageProps) {
           <div>{statusMessage}</div>
         </div>
       )}
-
-      <div className="vision-summary-grid">
-        {summaryItems.map((item) => (
-          <article key={item.label} className="vision-summary-card">
-            <span>{item.label}</span>
-            <strong>{item.value}</strong>
-          </article>
-        ))}
-      </div>
 
       <div className="vision-layout">
         <section className="vision-preview-panel">
