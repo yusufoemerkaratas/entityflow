@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 
 ReviewStatus = Literal["pending", "accepted", "rejected"]
+ReviewAction = Literal["accepted", "rejected"]
 
 
 class BoundingBox(BaseModel):
@@ -31,12 +32,26 @@ class VisualDetection(BaseModel):
     )
 
 
+class VisualDetectionOut(VisualDetection):
+
+    id: int = Field(..., description="Database identifier for the detected region.")
+
+
 class VisionInspectionResponse(BaseModel):
+
+    inspection_id: int = Field(..., description="Database identifier for the inspection run.")
 
     filename: str = Field(..., description="Original uploaded filename.")
     image_width: int = Field(..., gt=0, description="Width of the image coordinate space.")
     image_height: int = Field(..., gt=0, description="Height of the image coordinate space.")
-    detections: List[VisualDetection] = Field(
+    detections: List[VisualDetectionOut] = Field(
         default_factory=list,
         description="List of detected visual regions.",
+    )
+
+
+class VisionDetectionReviewRequest(BaseModel):
+
+    review_status: ReviewAction = Field(
+        ..., description="Updated human review state for the detection."
     )
