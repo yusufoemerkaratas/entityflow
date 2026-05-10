@@ -36,3 +36,26 @@ export type VisionOcrResponse = {
   is_empty: boolean
   engine: string
 }
+
+export type VisionOcrExtractedEntity = {
+  entity_type: string
+  entity_text: string
+  span_start: number | null
+  span_end: number | null
+  confidence: number | null
+}
+
+export type VisionOcrExtractionRun = {
+  extractor_name: string
+  extraction_id: number
+  entity_count: number
+}
+
+export type VisionOcrExtractionResponse = {
+  document_id: number
+  source_type: string
+  is_duplicate_document: boolean
+  ocr: VisionOcrResponse
+  runs: VisionOcrExtractionRun[]
+  results: Record<string, VisionOcrExtractedEntity[]>
+}

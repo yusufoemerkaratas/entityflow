@@ -22,6 +22,7 @@ export type {
   VisionDetection,
   VisionDetectionWithId,
   VisionInspectionResponse,
+  VisionOcrExtractionResponse,
   VisionOcrResponse,
   VisionReviewStatus,
 } from "./vision"

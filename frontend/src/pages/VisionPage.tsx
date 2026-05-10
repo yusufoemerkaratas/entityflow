@@ -1,7 +1,10 @@
 import { type ChangeEvent, useEffect, useRef, useState } from "react"
 
-import { extractVisionText } from "../api/client"
-import type { VisionOcrResponse } from "../types"
+import { extractVisionText, extractVisionTextAndRunPipeline } from "../api/client"
+import type {
+  VisionOcrExtractionResponse,
+  VisionOcrResponse,
+} from "../types"
 
 import "./VisionPage.css"
 
@@ -25,6 +28,9 @@ export function VisionPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [ocrResult, setOcrResult] = useState<VisionOcrResponse | null>(null)
   const [loading, setLoading] = useState(false)
+  const [pipelineLoading, setPipelineLoading] = useState(false)
+  const [pipelineResult, setPipelineResult] =
+    useState<VisionOcrExtractionResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
 
@@ -44,6 +50,7 @@ export function VisionPage() {
 
   function resetOcrState() {
     setOcrResult(null)
+    setPipelineResult(null)
     setStatusMessage(null)
     setError(null)
   }
@@ -91,6 +98,31 @@ export function VisionPage() {
       )
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleRunPipeline(extractors: string) {
+    if (!file || pipelineLoading) return
+
+    setPipelineLoading(true)
+    setError(null)
+    setStatusMessage(null)
+
+    try {
+      const response = await extractVisionTextAndRunPipeline(file, extractors)
+      setOcrResult(response.ocr)
+      setPipelineResult(response)
+      setStatusMessage(
+        `Pipeline completed on document #${response.document_id} (${response.source_type}).`,
+      )
+    } catch (pipelineError) {
+      setError(
+        pipelineError instanceof Error
+          ? pipelineError.message
+          : "OCR pipeline execution failed.",
+      )
+    } finally {
+      setPipelineLoading(false)
     }
   }
 
@@ -154,9 +186,17 @@ export function VisionPage() {
             type="button"
             className="vision-primary-button"
             onClick={handleExtract}
-            disabled={!file || loading}
+            disabled={!file || loading || pipelineLoading}
           >
             {loading ? "Running OCR…" : "Extract text from image"}
+          </button>
+          <button
+            type="button"
+            className="vision-primary-button"
+            onClick={() => handleRunPipeline("regex,spacy_de")}
+            disabled={!file || loading || pipelineLoading}
+          >
+            {pipelineLoading ? "Running pipeline…" : "Run OCR + regex + spaCy"}
           </button>
 
           <div className="vision-file-meta">
@@ -275,9 +315,36 @@ export function VisionPage() {
                 <h4>Next step</h4>
                 <p>
                   This OCR output will be the input for the existing entity
-                  extraction pipeline in the next Sprint 5 integration step.
+                  extraction pipeline.
                 </p>
               </section>
+
+              {pipelineResult && (
+                <section className="vision-ocr-card">
+                  <p className="vision-ocr-label">Entity extraction result</p>
+                  <h4>Document #{pipelineResult.document_id}</h4>
+                  {Object.entries(pipelineResult.results).map(
+                    ([extractorName, entities]) => (
+                      <div key={extractorName}>
+                        <p className="vision-ocr-label">
+                          {extractorName} ({entities.length})
+                        </p>
+                        {entities.length === 0 ? (
+                          <p className="vision-ocr-text">No entities extracted.</p>
+                        ) : (
+                          <ul className="vision-entity-list">
+                            {entities.map((entity, index) => (
+                              <li key={`${extractorName}-${entity.entity_text}-${index}`}>
+                                <strong>{entity.entity_type}:</strong> {entity.entity_text}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ),
+                  )}
+                </section>
+              )}
             </div>
           ) : (
             <div className="vision-empty-table">
