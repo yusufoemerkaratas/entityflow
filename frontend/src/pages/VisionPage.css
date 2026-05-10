@@ -41,8 +41,9 @@
 
 .vision-page-embedded {
   padding: 2rem;
-  border: 1px solid var(--vision-border);
-  border-radius: 0.4rem;
+  border: 0;
+  border-left: 1px solid var(--vision-border);
+  border-radius: 0;
 }
 
 .vision-toolbar {
@@ -58,16 +59,17 @@
   gap: 1rem;
   min-height: 6.5rem;
   padding: 1.2rem 1.3rem;
-  border: 1px dashed var(--vision-border);
-  border-radius: 0.35rem;
+  border: 0;
+  border-left: 1px solid var(--vision-border);
+  border-radius: 0;
   background: #000000;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .vision-upload-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--vision-accent);
+  transform: none;
+  border-left-color: var(--vision-accent);
   box-shadow: 0 0 0 1px transparent;
 }
 
@@ -113,8 +115,9 @@
   align-items: center;
   min-width: 0;
   padding: 1rem 1.25rem;
-  border: 1px solid var(--vision-border);
-  border-radius: 0.35rem;
+  border: 0;
+  border-left: 1px solid var(--vision-border);
+  border-radius: 0;
   background: #000000;
   box-shadow: none;
 }
@@ -128,7 +131,7 @@
   width: 100%;
   padding: 0.9rem 1.25rem;
   border: 1px solid #39ff88;
-  border-radius: 0.3rem;
+  border-radius: 0;
   background: #39ff88;
   color: #001405;
   font-weight: 700;
@@ -178,8 +181,9 @@
   flex-direction: column;
   gap: 0.25rem;
   padding: 1rem 1.1rem;
-  border: 1px solid var(--vision-border);
-  border-radius: 0.35rem;
+  border: 0;
+  border-left: 1px solid var(--vision-border);
+  border-radius: 0;
   background: #000000;
   box-shadow: none;
 }
@@ -206,8 +210,9 @@
 .vision-result-panel {
   min-width: 0;
   padding: 1.25rem;
-  border: 1px solid var(--vision-border);
-  border-radius: 0.35rem;
+  border: 0;
+  border-left: 1px solid var(--vision-border);
+  border-radius: 0;
   background: #000000;
   box-shadow: none;
 }
@@ -246,7 +251,7 @@
 .vision-stage {
   display: inline-block;
   max-width: 100%;
-  border-radius: 0.35rem;
+  border-radius: 0;
   overflow: hidden;
   background: #000000;
   border: 1px solid var(--vision-border);
@@ -268,8 +273,9 @@
   padding: 3rem 1.5rem;
   text-align: center;
   color: var(--vision-muted);
-  border: 1px dashed var(--vision-border);
-  border-radius: 0.35rem;
+  border: 0;
+  border-left: 1px solid var(--vision-border);
+  border-radius: 0;
   background: #000000;
 }
 
@@ -299,8 +305,9 @@
 .vision-ocr-card,
 .vision-ocr-note {
   padding: 1rem;
-  border: 1px solid var(--vision-border);
-  border-radius: 0.35rem;
+  border: 0;
+  border-left: 1px solid var(--vision-border);
+  border-radius: 0;
   background: var(--vision-panel-soft);
 }
 
@@ -343,7 +350,7 @@
 .vision-ocr-text {
   margin: 0;
   padding: 1rem;
-  border-radius: 0.3rem;
+  border-radius: 0;
   background: #000000;
   border: 1px solid var(--vision-border);
   color: var(--vision-heading);
@@ -374,7 +381,7 @@
   width: 100%;
   padding: 0.8rem 0.9rem;
   border: 1px solid var(--vision-border);
-  border-radius: 0.3rem;
+  border-radius: 0;
   background: #000000;
   color: var(--vision-heading);
   font: inherit;
@@ -416,8 +423,9 @@
   display: grid;
   gap: 0.2rem;
   padding: 0.85rem;
-  border: 1px solid var(--vision-border);
-  border-radius: 0.3rem;
+  border: 0;
+  border-left: 1px solid var(--vision-border);
+  border-radius: 0;
   background: #000000;
 }
 
