@@ -13,7 +13,7 @@ EntityFlow now covers two linked workflows:
 1. Text extraction: upload unstructured text, run regex + spaCy + LLM extractors, compare the outputs side by side, and review the extracted entities.
 2. Computer vision inspection: upload an image, run a lightweight visual inspection pipeline, view detected regions on top of the image, and approve or reject each detection.
 
-The review flow is human-in-the-loop in both modes. Text entities and visual detections can be approved or rejected from the UI, and the choice is stored as `review_status` in the database.
+The review flow is human-in-the-loop in both modes. Text entities and visual detections can be reviewed from the UI, and the choice is stored as `review_status` in the database.
 
 **Extracted entity types:** Person · Organization · Location · Title · Address · Email · Phone · URL
 
@@ -29,7 +29,7 @@ Pipeline overview:
 4. Contour detection proposes candidate regions, scales the bounding boxes back to original coordinates, and assigns heuristic confidence scores.
 5. The inspection run and its detections are persisted in PostgreSQL.
 6. The frontend renders the image preview, bounding boxes, summary cards, and a review table.
-7. Approve/reject actions call `PATCH /vision/detections/{id}/review` and persist the new review state.
+7. Accept/reject actions call `PATCH /vision/detections/{id}/review` and persist the new review state.
 
 ---
 
@@ -96,7 +96,7 @@ vision_detections  — inspection_id, label, confidence, bbox_x, bbox_y, bbox_wi
 | `POST` | `/documents` | Upload text, returns id + duplicate flag |
 | `POST` | `/documents/{id}/extract` | Run extractor (`?extractor=regex\|spacy_de\|llm_mini`) |
 | `GET` | `/documents/{id}/extractions` | All extractor results in one response |
-| `PATCH` | `/entities/{id}/review` | Accept or reject a text entity |
+| `PATCH` | `/entities/{id}/review` | Persist a text entity review state |
 | `POST` | `/vision/inspect` | Upload an image, persist inspection + detections |
 | `PATCH` | `/vision/detections/{id}/review` | Persist a visual detection review state |
 | `GET` | `/health` | DB-aware health check |
@@ -204,8 +204,11 @@ uvicorn app.api.main:app --reload
 ```bash
 cd frontend
 npm install
+export VITE_API_BASE_URL=http://localhost:8000
 npm run dev
 ```
+
+The frontend does not define a Vite proxy in this repository, so setting `VITE_API_BASE_URL` keeps API requests pointed at the FastAPI server during local development.
 
 ---
 
@@ -231,6 +234,7 @@ entityflow/
 │   ├── api/          # FastAPI routes
 │   ├── db/           # Database connection + schema
 │   ├── extractors/   # RegexExtractor, SpaCyExtractor, LlmExtractor
+│   ├── vision/       # OpenCV preprocessing + inspection pipeline
 │   └── schemas/      # Pydantic models
 ├── frontend/         # React + TypeScript UI
 ├── tests/            # pytest unit + integration tests
