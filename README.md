@@ -1,18 +1,33 @@
 # EntityFlow
 
-**NLP-based entity extraction pipeline** — converts unstructured text into structured entities using a multi-layer approach: regex baseline → spaCy NER → LLM fallback.
+**Multimodal entity extraction and computer vision review workspace** — converts unstructured text into structured entities and now includes a computer vision mode for image inspection, bounding-box review, and human-in-the-loop validation.
 
-Built as a portfolio project targeting NLP/data extraction roles (snapAddy, Heidelberg area).
+Built as a portfolio project for NLP, multimodal AI, and computer vision roles.
 
 ---
 
 ## What it does
 
-Upload any unstructured text → EntityFlow runs it through three extraction layers → results are compared side by side → human reviewer confirms or rejects entities.
+EntityFlow now covers two linked workflows:
 
-The review step is intentionally lightweight: each extracted entity can be approved or rejected from the UI, and the choice is stored as `review_status` in the database. This keeps the workflow human-in-the-loop without turning the app into a full annotation platform.
+1. Text extraction: upload unstructured text, run regex + spaCy + LLM extractors, compare the outputs side by side, and review the extracted entities.
+2. Computer vision inspection: upload an image, run a lightweight visual inspection pipeline, view detected regions on top of the image, and approve or reject each detection.
+
+The review flow is human-in-the-loop in both modes. Text entities and visual detections can be approved or rejected from the UI, and the choice is stored as `review_status` in the database.
 
 **Extracted entity types:** Person · Organization · Location · Title · Address · Email · Phone · URL
+
+## Computer Vision Mode
+
+The vision mode is designed as a clean portfolio demo for image inspection rather than a production-grade annotation platform. It uses a simple OpenCV-based contour pipeline to identify visually distinct regions and returns bounding boxes with heuristic confidence scores.
+
+Pipeline overview:
+
+1. The frontend uploads an image to `POST /vision/inspect`.
+2. The backend validates the file, decodes it with OpenCV, and runs contour-based region detection.
+3. The inspection run and its detections are persisted in PostgreSQL.
+4. The frontend renders the image preview, bounding boxes, and a review table.
+5. Approve/reject actions call `PATCH /vision/detections/{id}/review` and persist the new review state.
 
 ---
 
@@ -44,24 +59,30 @@ The review step is intentionally lightweight: each extracted entity can be appro
 
 ## Architecture
 
-```
-Text Input
-    ↓
-POST /documents          — upload text, SHA-256 deduplication
-    ↓
-POST /documents/{id}/extract?extractor=regex|spacy_de|llm_mini
-    ↓
-GET  /documents/{id}/extractions   — all extractor results in one response
-    ↓
-Review UI               — human confirms / rejects entities
+```mermaid
+flowchart TD
+    A[Text upload] --> B[POST /documents]
+    B --> C[Regex / spaCy / LLM extractors]
+    C --> D[GET /documents/{id}/extractions]
+    D --> E[Entity review UI]
+
+    F[Image upload] --> G[POST /vision/inspect]
+    G --> H[OpenCV contour detection]
+    H --> I[(vision_inspections)]
+    H --> J[(vision_detections)]
+    J --> K[Visual review UI]
+    K --> L[PATCH /vision/detections/{id}/review]
+    L --> J
 ```
 
 **Database schema:**
 
 ```
-documents       — raw text, content_hash (UNIQUE), metadata
-extractions     — document_id, extractor_name, processing_ms
-entities        — extraction_id, entity_type, entity_text, span_start, span_end, confidence, review_status
+documents          — raw text, content_hash (UNIQUE), metadata
+extractions        — document_id, extractor_name, processing_ms
+entities           — extraction_id, entity_type, entity_text, span_start, span_end, confidence, review_status
+vision_inspections — filename, image_width, image_height
+vision_detections  — inspection_id, label, confidence, bbox_x, bbox_y, bbox_width, bbox_height, review_status
 ```
 
 ---
@@ -73,8 +94,37 @@ entities        — extraction_id, entity_type, entity_text, span_start, span_en
 | `POST` | `/documents` | Upload text, returns id + duplicate flag |
 | `POST` | `/documents/{id}/extract` | Run extractor (`?extractor=regex\|spacy_de\|llm_mini`) |
 | `GET` | `/documents/{id}/extractions` | All extractor results in one response |
-| `PATCH` | `/entities/{id}/review` | Accept or reject an entity |
+| `PATCH` | `/entities/{id}/review` | Accept or reject a text entity |
+| `POST` | `/vision/inspect` | Upload an image, persist inspection + detections |
+| `PATCH` | `/vision/detections/{id}/review` | Persist a visual detection review state |
 | `GET` | `/health` | DB-aware health check |
+
+### Example Vision Request
+
+```bash
+curl -X POST "http://localhost:8000/vision/inspect" \
+    -F "file=@docs/demo-images/sample-product.png"
+```
+
+### Example Vision JSON Response
+
+```json
+{
+    "inspection_id": 12,
+    "filename": "sample-product.png",
+    "image_width": 400,
+    "image_height": 300,
+    "detections": [
+        {
+            "id": 41,
+            "label": "visual_defect_candidate",
+            "confidence": 0.95,
+            "bbox": { "x": 118, "y": 78, "width": 145, "height": 85 },
+            "review_status": "pending"
+        }
+    ]
+}
+```
 
 Full docs at `http://localhost:8000/docs` (Swagger UI).
 
@@ -103,6 +153,17 @@ App runs at `http://localhost:5173` · API at `http://localhost:8000/docs`
 
 - **Entity Review in Action**
 ![Entity Review](docs/screenshots/entity_review.png)
+
+- **Vision Upload State**
+![Vision Upload](docs/screenshots/vision-upload.png)
+
+- **Vision Inspection Result**
+![Vision Result](docs/screenshots/vision-result.png)
+
+## Demo Images
+
+- [Sample Product Image](docs/demo-images/sample-product.png)
+- [Sample Product Variant](docs/demo-images/sample-product-variant.png)
 
 ---
 
@@ -144,7 +205,7 @@ Optional for LLM extraction:
 
 ## Demo Script
 
-See [docs/demo-script.md](docs/demo-script.md).
+See [docs/cv-demo-script.md](docs/cv-demo-script.md) for the computer vision showcase flow.
 
 ---
 
@@ -172,6 +233,13 @@ This project follows a GitHub issue → branch → PR workflow.
 Each feature was developed in its own branch and merged via pull request.
 
 Labels used: `setup` · `backend` · `nlp` · `frontend` · `evaluation` · `devops` · `docs`
+
+## Future Work
+
+- OCR support
+- YOLO/object detection
+- Defect classification model
+- Dataset-based evaluation
 
 ---
 
