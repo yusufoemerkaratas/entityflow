@@ -21,8 +21,13 @@ function formatPixels(value: number): string {
   return value.toLocaleString()
 }
 
-export function VisionPage() {
+type VisionPageProps = {
+  embedded?: boolean
+}
+
+export function VisionPage({ embedded = false }: VisionPageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
 
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -31,6 +36,8 @@ export function VisionPage() {
   const [pipelineLoading, setPipelineLoading] = useState(false)
   const [pipelineResult, setPipelineResult] =
     useState<VisionOcrExtractionResponse | null>(null)
+  const [entityFilter, setEntityFilter] = useState("all")
+  const [entitySearch, setEntitySearch] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
 
@@ -55,6 +62,20 @@ export function VisionPage() {
     setError(null)
   }
 
+  function selectImage(nextFile: File) {
+    if (!ACCEPTED_IMAGE_TYPES.includes(nextFile.type)) {
+      setFile(null)
+      resetOcrState()
+      setError("Please choose a JPG, PNG, WEBP, GIF, BMP, or TIFF image.")
+      if (fileInputRef.current) fileInputRef.current.value = ""
+      if (cameraInputRef.current) cameraInputRef.current.value = ""
+      return
+    }
+
+    setFile(nextFile)
+    resetOcrState()
+  }
+
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     setError(null)
     setStatusMessage(null)
@@ -62,16 +83,7 @@ export function VisionPage() {
     const nextFile = event.target.files?.[0]
     if (!nextFile) return
 
-    if (!ACCEPTED_IMAGE_TYPES.includes(nextFile.type)) {
-      setFile(null)
-      resetOcrState()
-      setError("Please choose a JPG, PNG, WEBP, GIF, BMP, or TIFF image.")
-      if (fileInputRef.current) fileInputRef.current.value = ""
-      return
-    }
-
-    setFile(nextFile)
-    resetOcrState()
+    selectImage(nextFile)
   }
 
   async function handleExtract() {
@@ -126,33 +138,26 @@ export function VisionPage() {
     }
   }
 
-  const summaryItems = [
-    {
-      label: "Image size",
-      value: ocrResult
-        ? `${ocrResult.image_width} × ${ocrResult.image_height}`
-        : "Waiting for OCR",
-    },
-    {
-      label: "Characters",
-      value: ocrResult ? ocrResult.char_count.toLocaleString() : "0",
-    },
-    {
-      label: "OCR engine",
-      value: ocrResult?.engine ?? "Not run yet",
-    },
-    {
-      label: "Status",
-      value: ocrResult
-        ? ocrResult.is_empty
-          ? "No text found"
-          : "Text extracted"
-        : "Idle",
-    },
-  ]
+  const allEntities = pipelineResult
+    ? Object.entries(pipelineResult.results).flatMap(([extractorName, entities]) =>
+        entities.map((entity) => ({ ...entity, extractorName })),
+      )
+    : []
+  const entityTypes = Array.from(new Set(allEntities.map((entity) => entity.entity_type)))
+  const filteredEntities = allEntities.filter((entity) => {
+    const matchesType = entityFilter === "all" || entity.entity_type === entityFilter
+    const query = entitySearch.trim().toLowerCase()
+    const matchesSearch =
+      query === "" ||
+      entity.entity_text.toLowerCase().includes(query) ||
+      entity.entity_type.toLowerCase().includes(query) ||
+      entity.extractorName.toLowerCase().includes(query)
 
-  return (
-    <section className="page-card vision-page">
+    return matchesType && matchesSearch
+  })
+
+  const content = (
+    <>
       <div className="page-header">
         <p className="eyebrow">Computer vision</p>
         <h2>OCR extraction workspace</h2>
@@ -180,6 +185,16 @@ export function VisionPage() {
           onChange={handleFileChange}
           disabled={loading}
         />
+        <input
+          ref={cameraInputRef}
+          id="vision-camera-input"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="vision-file-input"
+          onChange={handleFileChange}
+          disabled={loading || pipelineLoading}
+        />
 
         <div className="vision-toolbar-actions">
           <button
@@ -198,6 +213,9 @@ export function VisionPage() {
           >
             {pipelineLoading ? "Running pipeline…" : "Run OCR + regex + spaCy"}
           </button>
+          <label className="vision-secondary-button" htmlFor="vision-camera-input">
+            Take photo
+          </label>
 
           <div className="vision-file-meta">
             <strong>{file?.name ?? "No file selected"}</strong>
@@ -223,15 +241,6 @@ export function VisionPage() {
           <div>{statusMessage}</div>
         </div>
       )}
-
-      <div className="vision-summary-grid">
-        {summaryItems.map((item) => (
-          <article key={item.label} className="vision-summary-card">
-            <span>{item.label}</span>
-            <strong>{item.value}</strong>
-          </article>
-        ))}
-      </div>
 
       <div className="vision-layout">
         <section className="vision-preview-panel">
@@ -321,27 +330,60 @@ export function VisionPage() {
 
               {pipelineResult && (
                 <section className="vision-ocr-card">
-                  <p className="vision-ocr-label">Entity extraction result</p>
-                  <h4>Document #{pipelineResult.document_id}</h4>
-                  {Object.entries(pipelineResult.results).map(
-                    ([extractorName, entities]) => (
-                      <div key={extractorName}>
-                        <p className="vision-ocr-label">
-                          {extractorName} ({entities.length})
-                        </p>
-                        {entities.length === 0 ? (
-                          <p className="vision-ocr-text">No entities extracted.</p>
-                        ) : (
-                          <ul className="vision-entity-list">
-                            {entities.map((entity, index) => (
-                              <li key={`${extractorName}-${entity.entity_text}-${index}`}>
-                                <strong>{entity.entity_type}:</strong> {entity.entity_text}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    ),
+                  <div className="vision-ocr-card-header">
+                    <div>
+                      <p className="vision-ocr-label">Entity extraction result</p>
+                      <h4>Document #{pipelineResult.document_id}</h4>
+                    </div>
+                    <span className="vision-panel-chip">
+                      {filteredEntities.length} visible
+                    </span>
+                  </div>
+
+                  <div className="vision-filter-bar">
+                    <input
+                      className="vision-filter-input"
+                      type="search"
+                      value={entitySearch}
+                      onChange={(event) => setEntitySearch(event.target.value)}
+                      placeholder="Search entity text, type, extractor"
+                    />
+                    <div className="vision-filter-chips" aria-label="Entity filters">
+                      <button
+                        type="button"
+                        className={entityFilter === "all" ? "vision-filter-chip-active" : ""}
+                        onClick={() => setEntityFilter("all")}
+                      >
+                        All
+                      </button>
+                      {entityTypes.map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          className={entityFilter === type ? "vision-filter-chip-active" : ""}
+                          onClick={() => setEntityFilter(type)}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {filteredEntities.length === 0 ? (
+                    <p className="vision-ocr-text">No entities match the current filters.</p>
+                  ) : (
+                    <div className="vision-entity-grid">
+                      {filteredEntities.map((entity, index) => (
+                        <article
+                          className="vision-entity-card"
+                          key={`${entity.extractorName}-${entity.entity_text}-${index}`}
+                        >
+                          <span>{entity.entity_type}</span>
+                          <strong>{entity.entity_text}</strong>
+                          <small>{entity.extractorName}</small>
+                        </article>
+                      ))}
+                    </div>
                   )}
                 </section>
               )}
@@ -357,6 +399,16 @@ export function VisionPage() {
           )}
         </aside>
       </div>
+    </>
+  )
+
+  if (embedded) {
+    return <div className="vision-page vision-page-embedded">{content}</div>
+  }
+
+  return (
+    <section className="page-card vision-page">
+      {content}
     </section>
   )
 }

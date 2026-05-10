@@ -1,11 +1,38 @@
 /* ── Tab Switcher ─────────────────────────────────── */
 
+.upload-page-card-vision {
+  background: #000;
+  border-color: #16351f;
+  box-shadow: none;
+}
+
+.upload-page-card-vision > .page-header h2,
+.upload-page-card-vision > .page-header p {
+  color: #eaffef;
+}
+
 .upload-tabs {
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0;
+}
+
+.upload-page-card-vision .upload-tabs {
+  border-bottom-color: #16351f;
+}
+
+.upload-page-card-vision .upload-tab {
+  color: #8ccf9c;
+}
+
+.upload-page-card-vision .upload-tab-active {
+  color: #39ff88;
+}
+
+.upload-page-card-vision .upload-tab-active::after {
+  background: #39ff88;
 }
 
 .upload-tab {
@@ -50,7 +77,7 @@
   min-height: 220px;
   padding: 1.25rem;
   border: 1px solid var(--border);
-  border-radius: 1rem;
+  border-radius: 0;
   background: var(--background);
   color: var(--text-heading);
   font: inherit;
@@ -83,8 +110,9 @@
   gap: 1rem;
   min-height: 220px;
   padding: 3rem 2rem;
-  border: 2px dashed var(--border);
-  border-radius: 1.25rem;
+  border: 0;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
   background: var(--background);
   text-align: center;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -125,7 +153,7 @@
   gap: 0.5rem;
   padding: 0.6rem 1.25rem;
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: 0;
   background: var(--surface);
   color: var(--text-heading);
   font-size: 0.9rem;
@@ -159,7 +187,7 @@
   gap: 0.5rem;
   margin-top: 0.5rem;
   padding: 0.5rem 1rem;
-  border-radius: 0.75rem;
+  border-radius: 0;
   background: var(--surface);
   border: 1px solid var(--accent);
   color: var(--accent-dark);
@@ -209,20 +237,20 @@
   gap: 0.5rem;
   padding: 0.85rem 2rem;
   border: none;
-  border-radius: 0.75rem;
+  border-radius: 0;
   background: var(--accent);
-  color: #ffffff;
+  color: #041007;
   font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 10px var(--accent-bg);
+  box-shadow: none;
 }
 
 .upload-submit:hover:not(:disabled) {
   background: var(--accent-dark);
   transform: translateY(-2px);
-  box-shadow: 0 8px 15px var(--accent-bg);
+  box-shadow: none;
 }
 
 .upload-submit:disabled {
@@ -238,8 +266,8 @@
   display: inline-block;
   width: 1.2rem;
   height: 1.2rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ffffff;
+  border: 2px solid #39ff88;
+  border-top-color: #39ff88;
   border-radius: 50%;
   animation: upload-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
@@ -265,16 +293,16 @@
   gap: 0.75rem;
   margin-top: 1.5rem;
   padding: 1rem 1.25rem;
-  border-radius: 1rem;
+  border-radius: 0;
   font-size: 0.95rem;
   line-height: 1.6;
   font-weight: 500;
 }
 
 .upload-error-banner {
-  background: #fef2f2;
-  border: 1px solid #fca5a5;
-  color: #991b1b;
+  background: #140506;
+  border: 1px solid #7f1d1d;
+  color: #fecaca;
 }
 
 .upload-info-banner {
