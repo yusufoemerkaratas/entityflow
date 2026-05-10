@@ -154,17 +154,6 @@ App runs at `http://localhost:5173` · API at `http://localhost:8000/docs`
 - **Entity Review in Action**
 ![Entity Review](docs/screenshots/entity_review.png)
 
-- **Vision Upload State**
-![Vision Upload](docs/screenshots/vision-upload.png)
-
-- **Vision Inspection Result**
-![Vision Result](docs/screenshots/vision-result.png)
-
-## Demo Images
-
-- [Sample Product Image](docs/demo-images/sample-product.png)
-- [Sample Product Variant](docs/demo-images/sample-product-variant.png)
-
 ---
 
 ## Local Development
@@ -200,12 +189,6 @@ Optional for LLM extraction:
 - `LLM_API_KEY`
 - `LLM_BASE_URL`
 - `LLM_MODEL_NAME`
-
----
-
-## Demo Script
-
-See [docs/cv-demo-script.md](docs/cv-demo-script.md) for the computer vision showcase flow.
 
 ---
 
