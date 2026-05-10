@@ -32,6 +32,15 @@ export function AppLayout() {
           >
             Upload
           </NavLink>
+
+          <NavLink
+            to="/vision"
+            className={({ isActive }) =>
+              isActive ? "nav-link nav-link-active" : "nav-link"
+            }
+          >
+            Vision
+          </NavLink>
         </nav>
       </header>
 

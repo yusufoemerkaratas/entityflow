@@ -3,6 +3,7 @@ import { createBrowserRouter } from "react-router-dom"
 import { AppLayout } from "./layouts/AppLayout"
 import { DocumentDetailPage } from "./pages/DocumentDetailPage"
 import { HomePage } from "./pages/HomePage"
+import { VisionPage } from "./pages/VisionPage"
 import { UploadPage } from "./pages/UploadPage"
 
 export const router = createBrowserRouter([
@@ -21,6 +22,10 @@ export const router = createBrowserRouter([
       {
         path: "documents/:id",
         element: <DocumentDetailPage />,
+      },
+      {
+        path: "vision",
+        element: <VisionPage />,
       },
     ],
   },
