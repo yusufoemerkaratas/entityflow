@@ -1,11 +1,38 @@
 /* ── Tab Switcher ─────────────────────────────────── */
 
+.upload-page-card-vision {
+  background: #05070a;
+  border-color: rgba(148, 163, 184, 0.22);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.upload-page-card-vision > .page-header h2,
+.upload-page-card-vision > .page-header p {
+  color: #f8fafc;
+}
+
 .upload-tabs {
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0;
+}
+
+.upload-page-card-vision .upload-tabs {
+  border-bottom-color: rgba(148, 163, 184, 0.22);
+}
+
+.upload-page-card-vision .upload-tab {
+  color: #cbd5e1;
+}
+
+.upload-page-card-vision .upload-tab-active {
+  color: #5eead4;
+}
+
+.upload-page-card-vision .upload-tab-active::after {
+  background: #12c7e8;
 }
 
 .upload-tab {

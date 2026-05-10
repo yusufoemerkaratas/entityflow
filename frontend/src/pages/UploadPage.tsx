@@ -2,6 +2,7 @@ import { type ChangeEvent, type FormEvent, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 import { createDocument } from "../api/client"
+import { VisionPage } from "./VisionPage"
 
 import "./UploadPage.css"
 
@@ -9,7 +10,7 @@ const MIN_LENGTH = 10
 const MAX_LENGTH = 100_000
 const ACCEPTED_EXTENSIONS = [".txt", ".md"]
 
-type InputMode = "paste" | "file"
+type InputMode = "paste" | "file" | "image"
 
 export function UploadPage() {
   const navigate = useNavigate()
@@ -26,7 +27,8 @@ export function UploadPage() {
   const charCount = text.length
   const isTooShort = charCount > 0 && charCount < MIN_LENGTH
   const isTooLong = charCount > MAX_LENGTH
-  const isValid = charCount >= MIN_LENGTH && charCount <= MAX_LENGTH
+  const isTextMode = mode === "paste" || mode === "file"
+  const isValid = isTextMode && charCount >= MIN_LENGTH && charCount <= MAX_LENGTH
 
   /* ── helpers ─────────────────────────────────────── */
 
@@ -122,13 +124,13 @@ export function UploadPage() {
   /* ── render ──────────────────────────────────────── */
 
   return (
-    <section className="page-card">
+    <section className={`page-card upload-page-card${mode === "image" ? " upload-page-card-vision" : ""}`}>
       <div className="page-header">
         <p className="eyebrow">New document</p>
         <h2>Upload a document</h2>
         <p>
-          Paste text directly or select a <code>.txt</code> / <code>.md</code>{" "}
-          file. The text will be sent to the extraction pipeline.
+          Paste text, select a text file, or run OCR on an image from the same
+          workspace.
         </p>
       </div>
 
@@ -154,9 +156,22 @@ export function UploadPage() {
         >
           📄 Upload file
         </button>
+        <button
+          id="tab-image"
+          role="tab"
+          type="button"
+          aria-selected={mode === "image"}
+          className={`upload-tab${mode === "image" ? " upload-tab-active" : ""}`}
+          onClick={() => switchMode("image")}
+        >
+          Image OCR
+        </button>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      {mode === "image" ? (
+        <VisionPage embedded />
+      ) : (
+        <form onSubmit={handleSubmit}>
         {/* ── Paste mode ─────────────────────────────── */}
         {mode === "paste" && (
           <textarea
@@ -227,10 +242,11 @@ export function UploadPage() {
             </span>
           )}
         </div>
-      </form>
+        </form>
+      )}
 
       {/* ── Error banner ───────────────────────────── */}
-      {error && (
+      {error && isTextMode && (
         <div className="upload-error-banner" role="alert">
           <span className="upload-error-icon">⚠️</span>
           <div>{error}</div>
@@ -238,7 +254,7 @@ export function UploadPage() {
       )}
 
       {/* ── Info / duplicate banner ────────────────── */}
-      {info && (
+      {info && isTextMode && (
         <div className="upload-info-banner" role="status">
           <span className="upload-info-icon">ℹ️</span>
           <div>{info}</div>
