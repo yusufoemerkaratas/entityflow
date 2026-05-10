@@ -19,15 +19,17 @@ The review flow is human-in-the-loop in both modes. Text entities and visual det
 
 ## Computer Vision Mode
 
-The vision mode is designed as a clean portfolio demo for image inspection rather than a production-grade annotation platform. It uses a simple OpenCV-based contour pipeline to identify visually distinct regions and returns bounding boxes with heuristic confidence scores.
+The vision mode is designed as a portfolio-ready showcase for internship applications: it demonstrates image upload, classical computer vision preprocessing, region proposal generation, persistence, and human review in one compact workflow. Instead of claiming full production object detection, it intentionally uses a lightweight OpenCV contour pipeline so the system design stays easy to explain in demos and interviews.
 
 Pipeline overview:
 
 1. The frontend uploads an image to `POST /vision/inspect`.
-2. The backend validates the file, decodes it with OpenCV, and runs contour-based region detection.
-3. The inspection run and its detections are persisted in PostgreSQL.
-4. The frontend renders the image preview, bounding boxes, and a review table.
-5. Approve/reject actions call `PATCH /vision/detections/{id}/review` and persist the new review state.
+2. The backend validates MIME type and decodes the bytes into an OpenCV image.
+3. Preprocessing converts the image to grayscale, smooths noise, thresholds foreground regions, and cleans the mask with morphology.
+4. Contour detection proposes candidate regions, scales the bounding boxes back to original coordinates, and assigns heuristic confidence scores.
+5. The inspection run and its detections are persisted in PostgreSQL.
+6. The frontend renders the image preview, bounding boxes, summary cards, and a review table.
+7. Approve/reject actions call `PATCH /vision/detections/{id}/review` and persist the new review state.
 
 ---
 
@@ -104,6 +106,14 @@ vision_detections  — inspection_id, label, confidence, bbox_x, bbox_y, bbox_wi
 ```bash
 curl -X POST "http://localhost:8000/vision/inspect" \
     -F "file=@docs/demo-images/sample-product.png"
+```
+
+### Example Detection Review Request
+
+```bash
+curl -X PATCH "http://localhost:8000/vision/detections/41/review" \
+    -H "Content-Type: application/json" \
+    -d '{"review_status":"accepted"}'
 ```
 
 ### Example Vision JSON Response
