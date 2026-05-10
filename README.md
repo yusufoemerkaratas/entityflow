@@ -81,7 +81,9 @@ flowchart TD
     preprocess --> tesseract["Tesseract OCR"]
     tesseract --> ocrText["Normalized OCR text"]
     ocrText --> ocrExtract["POST /vision/ocr/extract"]
-    ocrExtract --> documents
+    ocrExtract --> imageDocument["Create or reuse image_ocr document"]
+    imageDocument --> documents
+    imageDocument --> extractors
 ```
 
 **OCR-first note:** `POST /vision/inspect` is kept as a deprecated compatibility route, but it now returns the OCR-first response shape. The main Sprint 5 value proposition no longer depends on contour-based region detection.
