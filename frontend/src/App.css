@@ -8,6 +8,39 @@
   color: var(--text);
 }
 
+.app-shell-vision {
+  background: #000;
+  color: #d8ffe1;
+}
+
+.app-shell-vision .app-header {
+  background: #000;
+  border-bottom-color: #16351f;
+  box-shadow: none;
+}
+
+.app-shell-vision .app-header h1 {
+  color: #d8ffe1;
+}
+
+.app-shell-vision .eyebrow {
+  color: #39ff88;
+}
+
+.app-shell-vision .nav-link {
+  color: #9bc7a6;
+}
+
+.app-shell-vision .nav-link:hover,
+.app-shell-vision .nav-link-active {
+  color: #041007;
+  background: #39ff88;
+}
+
+.app-shell-vision .app-main {
+  width: min(1280px, calc(100% - 3rem));
+}
+
 .app-header {
   display: flex;
   align-items: center;

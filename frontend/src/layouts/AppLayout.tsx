@@ -1,8 +1,11 @@
-import { NavLink, Outlet } from "react-router-dom"
+import { NavLink, Outlet, useLocation } from "react-router-dom"
 
 export function AppLayout() {
+  const location = useLocation()
+  const isVisionRoute = location.pathname === "/vision"
+
   return (
-    <div className="app-shell">
+    <div className={`app-shell${isVisionRoute ? " app-shell-vision" : ""}`}>
       <header className="app-header">
         <div>
           <p className="eyebrow">EntityFlow</p>
