@@ -66,22 +66,22 @@ Reviewer decisions are stored on the entity rows, so extraction is not treated a
 
 ```mermaid
 flowchart TD
-    A[Paste text or upload .txt/.md] --> B[POST /documents]
-    B --> C[(documents)]
-    C --> D[POST /documents/{id}/extract]
-    D --> E[Regex / spaCy / LLM extractors]
-    E --> F[(extractions)]
-    F --> G[(entities)]
-    G --> H[Entity comparison and review UI]
-    H --> I[PATCH /entities/{id}/review]
-    I --> G
+    textInput["Paste text or upload .txt/.md"] --> createDocument["POST /documents"]
+    createDocument --> documents[("documents")]
+    documents --> runExtraction["POST /documents/:id/extract"]
+    runExtraction --> extractors["Regex / spaCy / LLM extractors"]
+    extractors --> extractions[("extractions")]
+    extractions --> entities[("entities")]
+    entities --> reviewUi["Entity comparison and review UI"]
+    reviewUi --> reviewEntity["PATCH /entities/:id/review"]
+    reviewEntity --> entities
 
-    J[Upload image] --> K[POST /vision/ocr]
-    K --> L[OpenCV OCR preprocessing]
-    L --> M[Tesseract OCR]
-    M --> N[Normalized OCR text]
-    N --> O[POST /vision/ocr/extract]
-    O --> C
+    imageInput["Upload image"] --> ocrEndpoint["POST /vision/ocr"]
+    ocrEndpoint --> preprocess["OpenCV OCR preprocessing"]
+    preprocess --> tesseract["Tesseract OCR"]
+    tesseract --> ocrText["Normalized OCR text"]
+    ocrText --> ocrExtract["POST /vision/ocr/extract"]
+    ocrExtract --> documents
 ```
 
 **OCR-first note:** `POST /vision/inspect` is kept as a deprecated compatibility route, but it now returns the OCR-first response shape. The main Sprint 5 value proposition no longer depends on contour-based region detection.
