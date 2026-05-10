@@ -16,3 +16,11 @@ export type {
 export type { HealthResponse } from "./health"
 
 export type { LlmExtractionResult } from "./llm"
+
+export type {
+  VisionBoundingBox,
+  VisionDetection,
+  VisionDetectionWithId,
+  VisionInspectionResponse,
+  VisionReviewStatus,
+} from "./vision"
