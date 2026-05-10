@@ -11,7 +11,7 @@
   --vision-danger: #fb7185;
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  gap: 1.35rem;
   background: var(--vision-bg);
   color: var(--vision-text);
 }
@@ -48,8 +48,8 @@
 
 .vision-toolbar {
   display: grid;
-  grid-template-columns: minmax(220px, 0.5fr) minmax(0, 1fr);
-  gap: 0.75rem;
+  grid-template-columns: minmax(280px, 0.45fr) minmax(0, 1fr);
+  gap: 1rem;
   align-items: stretch;
 }
 
@@ -57,8 +57,8 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  min-height: 4.75rem;
-  padding: 0.75rem 1rem;
+  min-height: 5.25rem;
+  padding: 1rem 1.15rem;
   border: 0;
   border-left: 1px solid var(--vision-border);
   border-radius: 0;
@@ -110,8 +110,8 @@
 
 .vision-toolbar-actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(130px, 0.6fr)) minmax(180px, 1fr);
-  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(150px, max-content)) minmax(180px, 1fr);
+  gap: 0.85rem;
   align-items: center;
   min-width: 0;
   padding: 0.75rem 1rem;
@@ -128,8 +128,9 @@
   align-items: center;
   justify-content: center;
   min-width: 0;
-  width: 100%;
-  padding: 0.7rem 0.9rem;
+  width: auto;
+  min-height: 3rem;
+  padding: 0.65rem 1rem;
   border: 1px solid #39ff88;
   border-radius: 0;
   background: #39ff88;
@@ -164,6 +165,7 @@
   min-width: 0;
   color: var(--vision-muted);
   text-align: right;
+  justify-self: end;
 }
 
 .vision-file-meta strong {
@@ -173,14 +175,14 @@
 .vision-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(320px, 1fr);
-  gap: 0.9rem;
+  gap: 1.35rem;
   align-items: start;
 }
 
 .vision-preview-panel,
 .vision-result-panel {
   min-width: 0;
-  padding: 0.75rem 0;
+  padding: 0;
   border: 0;
   border-radius: 0;
   background: #000000;
@@ -240,7 +242,8 @@
   display: grid;
   place-items: center;
   gap: 0.75rem;
-  padding: 1.5rem 1rem;
+  min-height: 15rem;
+  padding: 2rem 1.25rem;
   text-align: center;
   color: var(--vision-muted);
   border: 1px dashed var(--vision-border);
@@ -422,6 +425,11 @@
 
   .vision-toolbar-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .vision-file-meta {
+    justify-self: start;
+    text-align: left;
   }
 
   .vision-summary-grid {
