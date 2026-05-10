@@ -1,6 +1,6 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react"
 
-import { inspectVisionImage } from "../api/client"
+import { inspectVisionImage, patchVisionDetectionReview } from "../api/client"
 import type {
   VisionDetectionWithId,
   VisionInspectionResponse,
@@ -8,12 +8,6 @@ import type {
 } from "../types"
 
 import "./VisionPage.css"
-
-type DetectionSummary = {
-  label: string
-  count: number
-  className: string
-}
 
 const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
@@ -32,19 +26,6 @@ function formatPixels(value: number): string {
   return value.toLocaleString()
 }
 
-function createDetectionId(index: number): string {
-  return `vision-detection-${index + 1}`
-}
-
-function buildDetections(
-  response: VisionInspectionResponse,
-): VisionDetectionWithId[] {
-  return response.detections.map((detection, index) => ({
-    ...detection,
-    id: createDetectionId(index),
-  }))
-}
-
 export function VisionPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -52,7 +33,10 @@ export function VisionPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [inspection, setInspection] = useState<VisionInspectionResponse | null>(null)
   const [detections, setDetections] = useState<VisionDetectionWithId[]>([])
-  const [selectedDetectionId, setSelectedDetectionId] = useState<string | null>(null)
+  const [selectedDetectionId, setSelectedDetectionId] = useState<number | null>(null)
+  const [pendingReviewIds, setPendingReviewIds] = useState<Set<number>>(
+    () => new Set(),
+  )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
@@ -79,7 +63,7 @@ export function VisionPage() {
     [detections, selectedDetectionId],
   )
 
-  const summaryCards = useMemo<DetectionSummary[]>(() => {
+  const summaryCards = useMemo(() => {
     const pending = detections.filter(
       (detection) => detection.review_status === "pending",
     ).length
@@ -101,6 +85,7 @@ export function VisionPage() {
     setInspection(null)
     setDetections([])
     setSelectedDetectionId(null)
+    setPendingReviewIds(new Set())
     setStatusMessage(null)
     setError(null)
   }
@@ -133,7 +118,7 @@ export function VisionPage() {
 
     try {
       const response = await inspectVisionImage(file)
-      const nextDetections = buildDetections(response)
+      const nextDetections = response.detections
 
       setInspection(response)
       setDetections(nextDetections)
@@ -159,10 +144,16 @@ export function VisionPage() {
     }
   }
 
-  function updateDetectionStatus(
-    detectionId: string,
+  async function updateDetectionStatus(
+    detectionId: number,
     reviewStatus: VisionReviewStatus,
   ) {
+    const previousDetections = detections
+
+    setPendingReviewIds((current) => new Set(current).add(detectionId))
+    setSelectedDetectionId(detectionId)
+    setError(null)
+
     setDetections((current) =>
       current.map((detection) =>
         detection.id === detectionId
@@ -170,12 +161,42 @@ export function VisionPage() {
           : detection,
       ),
     )
-    setSelectedDetectionId(detectionId)
-    setStatusMessage(`Marked detection as ${reviewStatus} locally.`)
+
+    try {
+      const updatedDetection = await patchVisionDetectionReview(
+        detectionId,
+        reviewStatus,
+      )
+
+      setDetections((current) =>
+        current.map((detection) =>
+          detection.id === detectionId ? updatedDetection : detection,
+        ),
+      )
+      setStatusMessage(`Saved detection as ${updatedDetection.review_status}.`)
+    } catch (reviewError) {
+      setDetections(previousDetections)
+      setStatusMessage(null)
+      setError(
+        reviewError instanceof Error
+          ? reviewError.message
+          : "Failed to save detection review.",
+      )
+    } finally {
+      setPendingReviewIds((current) => {
+        const next = new Set(current)
+        next.delete(detectionId)
+        return next
+      })
+    }
   }
 
-  function selectDetection(detectionId: string) {
+  function selectDetection(detectionId: number) {
     setSelectedDetectionId(detectionId)
+  }
+
+  function isReviewingDetection(detectionId: number): boolean {
+    return pendingReviewIds.has(detectionId)
   }
 
   const imageWidth = inspection?.image_width ?? 1
@@ -343,17 +364,12 @@ export function VisionPage() {
           <header className="vision-panel-header">
             <div>
               <p className="eyebrow">Detection review</p>
-              <h3>Results and local review state</h3>
+              <h3>Results and review state</h3>
             </div>
-            <span className="vision-panel-chip vision-panel-chip-local">
-              Frontend only
+            <span className="vision-panel-chip vision-panel-chip-backend">
+              Saved to backend
             </span>
           </header>
-
-          <p className="vision-review-note">
-            Accept and reject actions update the UI state for this session only.
-            There is no backend persistence for visual detection reviews yet.
-          </p>
 
           {activeDetection ? (
             <div className="vision-active-card">
@@ -398,6 +414,7 @@ export function VisionPage() {
                   type="button"
                   className="vision-action-button vision-action-accept"
                   onClick={() => updateDetectionStatus(activeDetection.id, "accepted")}
+                  disabled={isReviewingDetection(activeDetection.id)}
                 >
                   Approve
                 </button>
@@ -405,6 +422,7 @@ export function VisionPage() {
                   type="button"
                   className="vision-action-button vision-action-reject"
                   onClick={() => updateDetectionStatus(activeDetection.id, "rejected")}
+                  disabled={isReviewingDetection(activeDetection.id)}
                 >
                   Reject
                 </button>
@@ -470,6 +488,7 @@ export function VisionPage() {
                                 event.stopPropagation()
                                 updateDetectionStatus(detection.id, "accepted")
                               }}
+                              disabled={isReviewingDetection(detection.id)}
                             >
                               Approve
                             </button>
@@ -480,6 +499,7 @@ export function VisionPage() {
                                 event.stopPropagation()
                                 updateDetectionStatus(detection.id, "rejected")
                               }}
+                              disabled={isReviewingDetection(detection.id)}
                             >
                               Reject
                             </button>
