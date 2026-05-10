@@ -1,6 +1,6 @@
 # Computer Vision Mode — Local Demo
 
-This guide walks you through the visual inspection feature end-to-end.
+This guide walks you through the visual inspection feature end-to-end so you can use it as a short portfolio demo during interviews or internship applications.
 
 ## Prerequisites
 
@@ -50,11 +50,12 @@ Click the **"Run visual inspection"** button.
 
 The backend will:
 1. Receive the image via `POST /vision/inspect`
-2. Preprocess it (grayscale, blur, adaptive thresholding)
-3. Detect contours using OpenCV
-4. Extract bounding boxes and calculate confidence scores
-5. Persist the inspection and detections to PostgreSQL
-6. Return the results as JSON
+2. Validate the MIME type and decode the uploaded bytes with OpenCV
+3. Preprocess it with grayscale conversion, blur, thresholding, and morphology
+4. Detect contours and convert them into bounding boxes
+5. Calculate heuristic confidence scores for each region
+6. Persist the inspection and detections to PostgreSQL
+7. Return the results as JSON
 
 The UI will update to show:
 - **Detection count** in the summary cards
@@ -103,7 +104,7 @@ curl -X POST "http://localhost:8000/vision/inspect" \
   "detections": [
     {
       "id": 10,
-      "label": "visual_region",
+      "label": "visual_defect_candidate",
       "confidence": 0.87,
       "bbox": {
         "x": 100,
@@ -122,8 +123,10 @@ curl -X POST "http://localhost:8000/vision/inspect" \
 ```bash
 curl -X PATCH "http://localhost:8000/vision/detections/10/review" \
   -H "Content-Type: application/json" \
-  -d '{"review_action": "accept"}'
+  -d '{"review_status":"accepted"}'
 ```
+
+This endpoint returns the updated detection object with the new `review_status`.
 
 ---
 
@@ -167,5 +170,5 @@ vision_detections (
 
 After exploring the vision mode:
 1. Check the text extraction workflow: `http://localhost:5173/upload`
-2. Review the architecture: see `README.md` for the Mermaid diagram
+2. Review the architecture: see `docs/cv-architecture.md`
 3. Explore the code: `app/api/vision.py`, `app/vision/inspection.py`

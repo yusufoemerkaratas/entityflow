@@ -1,13 +1,15 @@
 # Demo Script (60-90 seconds)
 
-Hi, I am Yusuf. This is EntityFlow, a lightweight NLP pipeline that extracts structured entities from unstructured text.
+Hi, I am Yusuf. This is EntityFlow, a multimodal AI portfolio project that combines text extraction and computer vision review in one workspace.
 
-First, I upload a raw text document. The backend stores it with SHA-256 deduplication and returns the document id.
+On the text side, I can upload an unstructured document, store it with SHA-256 deduplication, and run three extractors side by side: regex, spaCy, and a small LLM-based extractor.
 
-Next, I run three extractors side by side: regex, spaCy, and a small LLM-based extractor. You can see the outputs in parallel, with each entity type labeled and the span highlighted in the original text.
+That lets me compare classical NLP and LLM outputs in the same interface, with entities highlighted in context and saved for human review.
 
-The review step is human-in-the-loop: I can approve or reject each entity, and the decision is saved to the database.
+On the computer vision side, I can upload an image, run a lightweight OpenCV inspection pipeline, and review the detected regions directly on top of the preview.
 
-The goal is to compare extraction quality quickly, validate results, and keep a clean audit trail of what was accepted.
+In both modes, the workflow is human-in-the-loop: I can approve or reject entities or detections, and every decision is saved to the database.
+
+The goal is to show not just model output, but also validation, persistence, and a clean review experience that is easy to explain in interviews.
 
 That is the core workflow. Thank you.
