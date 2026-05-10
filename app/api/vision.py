@@ -3,6 +3,11 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.vision.inspection import inspect_image
+from app.vision.ocr import (
+    OcrEngineUnavailableError,
+    OcrProcessingError,
+    extract_text_from_image,
+)
 from app.vision.preprocessing import (
     InvalidImageError,
     decode_image_bytes,
@@ -13,6 +18,7 @@ from app.schemas.vision import (
     BoundingBox,
     VisionDetectionReviewRequest,
     VisionInspectionResponse,
+    VisionOcrResponse,
     VisualDetectionOut,
 )
 
@@ -33,6 +39,48 @@ def _build_detection_response(row) -> VisualDetectionOut:
         ),
         review_status=row["review_status"],
     )
+
+
+@router.post("/ocr", response_model=VisionOcrResponse)
+async def extract_ocr_text(
+    file: UploadFile = File(...),
+) -> VisionOcrResponse:
+    """Extract readable text from an uploaded image using OCR."""
+
+    try:
+        validate_image_content_type(file.content_type)
+
+        image_bytes = await file.read()
+        image = decode_image_bytes(image_bytes)
+        ocr_result = extract_text_from_image(image)
+
+        height, width = image.shape[:2]
+
+        return VisionOcrResponse(
+            filename=file.filename or "uploaded-image",
+            image_width=width,
+            image_height=height,
+            extracted_text=ocr_result.extracted_text,
+            raw_text=ocr_result.raw_text,
+            char_count=ocr_result.char_count,
+            is_empty=ocr_result.is_empty,
+            engine=ocr_result.engine,
+        )
+    except InvalidImageError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+    except OcrEngineUnavailableError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
+    except OcrProcessingError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc),
+        ) from exc
 
 
 @router.post("/inspect", response_model=VisionInspectionResponse)

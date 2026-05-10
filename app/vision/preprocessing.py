@@ -11,6 +11,8 @@ MAX_PROCESSING_WIDTH = 1200
 BLUR_KERNEL_SIZE: Tuple[int, int] = (5, 5)
 ADAPTIVE_THRESHOLD_BLOCK_SIZE = 31
 ADAPTIVE_THRESHOLD_C = 5
+OCR_THRESHOLD_BLOCK_SIZE = 21
+OCR_THRESHOLD_C = 10
 
 
 class InvalidImageError(ValueError):
@@ -125,4 +127,27 @@ def preprocess_for_inspection(image: np.ndarray) -> PreprocessedImage:
         grayscale_image=grayscale_image,
         blurred_image=blurred_image,
         binary_image=binary_image,
+    )
+
+
+def preprocess_for_ocr(image: np.ndarray) -> np.ndarray:
+    """Prepare a decoded OpenCV image for OCR-friendly thresholding."""
+
+    if image is None or image.size == 0:
+        raise InvalidImageError("Cannot preprocess an empty image.")
+
+    if image.ndim < 2:
+        raise InvalidImageError("Invalid image shape for preprocessing.")
+
+    working_image, _ = resize_for_processing(image)
+    grayscale_image = cv2.cvtColor(working_image, cv2.COLOR_BGR2GRAY)
+    blurred_image = cv2.GaussianBlur(grayscale_image, BLUR_KERNEL_SIZE, 0)
+
+    return cv2.adaptiveThreshold(
+        blurred_image,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        OCR_THRESHOLD_BLOCK_SIZE,
+        OCR_THRESHOLD_C,
     )
