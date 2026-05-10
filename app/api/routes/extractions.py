@@ -3,11 +3,8 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.extractors.regex_extractor import RegexExtractor
-from app.extractors.spacy_extractor import SpacyExtractor
-from app.extractors.llm_extractor import LlmExtractor
-
 from app.schemas.comparison import ComparisonResponse, ExtractionMeta, EntityOut
+from app.services.extraction_pipeline import run_extractor_and_persist
 
 router = APIRouter(tags=["extractions"])
 
@@ -18,17 +15,6 @@ def extract_document(
     extractor: str = Query(...),
     db: Session = Depends(get_db),
 ):
-    if extractor == "regex":
-        selected_extractor = RegexExtractor()
-    elif extractor == "spacy_de":
-        selected_extractor = SpacyExtractor()
-    elif extractor == "llm_mini":
-        selected_extractor = LlmExtractor()
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail="Supported extractors are 'regex', 'spacy_de', and 'llm_mini'.")
-
     document_row = db.execute(
         text(
             """
@@ -43,67 +29,21 @@ def extract_document(
     if not document_row:
         raise HTTPException(status_code=404, detail="Document not found.")
 
-    extracted_entities = selected_extractor.extract(document_row["raw_text"])
-
-    extraction_row = db.execute(
-        text(
-            """
-            INSERT INTO extractions (document_id, extractor_name, extractor_version, processing_ms)
-            VALUES (:document_id, :extractor_name, :extractor_version, :processing_ms)
-            RETURNING id, extractor_name, extractor_version, created_at
-            """
-        ),
-        {
-            "document_id": document_id,
-            "extractor_name": selected_extractor.name,
-            "extractor_version": selected_extractor.version,
-            "processing_ms": 0,
-        },
-    ).mappings().first()
-
-    for entity in extracted_entities:
-        db.execute(
-            text(
-                """
-                INSERT INTO entities (
-                    extraction_id,
-                    entity_type,
-                    entity_text,
-                    normalized_value,
-                    confidence,
-                    span_start,
-                    span_end
-                )
-                VALUES (
-                    :extraction_id,
-                    :entity_type,
-                    :entity_text,
-                    :normalized_value,
-                    :confidence,
-                    :span_start,
-                    :span_end
-                )
-                """
-            ),
-            {
-                "extraction_id": extraction_row["id"],
-                "entity_type": entity.entity_type,
-                "entity_text": entity.entity_text,
-                "normalized_value": entity.entity_text,
-                "confidence": entity.confidence,
-                "span_start": entity.span_start,
-                "span_end": entity.span_end,
-            },
-        )
+    extraction_result = run_extractor_and_persist(
+        db=db,
+        document_id=document_id,
+        raw_text=document_row["raw_text"],
+        extractor=extractor,
+    )
 
     db.commit()
 
     return {
         "document_id": document_id,
-        "extraction_id": extraction_row["id"],
-        "extractor_name": extraction_row["extractor_name"],
-        "extractor_version": extraction_row["extractor_version"],
-        "entity_count": len(extracted_entities),
+        "extraction_id": extraction_result.extraction_id,
+        "extractor_name": extraction_result.extractor_name,
+        "extractor_version": extraction_result.extractor_version,
+        "entity_count": len(extraction_result.entities),
         "entities": [
             {
                 "entity_type": entity.entity_type,
@@ -112,7 +52,7 @@ def extract_document(
                 "span_end": entity.span_end,
                 "confidence": entity.confidence,
             }
-            for entity in extracted_entities
+            for entity in extraction_result.entities
         ],
      }
 
