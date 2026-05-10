@@ -265,8 +265,8 @@
   display: inline-block;
   width: 1.2rem;
   height: 1.2rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ffffff;
+  border: 2px solid rgba(57, 255, 136, 0.22);
+  border-top-color: #39ff88;
   border-radius: 50%;
   animation: upload-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
