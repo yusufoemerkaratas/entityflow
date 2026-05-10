@@ -55,3 +55,14 @@ class VisionDetectionReviewRequest(BaseModel):
     review_status: ReviewAction = Field(
         ..., description="Updated human review state for the detection."
     )
+
+
+class VisionOcrResponse(BaseModel):
+    filename: str = Field(..., description="Original uploaded filename.")
+    image_width: int = Field(..., gt=0, description="Width of the uploaded image in pixels.")
+    image_height: int = Field(..., gt=0, description="Height of the uploaded image in pixels.")
+    extracted_text: str = Field(..., description="OCR text normalized for downstream processing.")
+    raw_text: str = Field(..., description="Raw OCR text before normalization.")
+    char_count: int = Field(..., ge=0, description="Character count of the normalized OCR text.")
+    is_empty: bool = Field(..., description="Whether OCR returned usable text.")
+    engine: str = Field(..., description="OCR engine identifier used for extraction.")
