@@ -25,3 +25,14 @@ export type VisionInspectionResponse = {
   image_height: number
   detections: VisionDetectionWithId[]
 }
+
+export type VisionOcrResponse = {
+  filename: string
+  image_width: number
+  image_height: number
+  extracted_text: string
+  raw_text: string
+  char_count: number
+  is_empty: boolean
+  engine: string
+}
