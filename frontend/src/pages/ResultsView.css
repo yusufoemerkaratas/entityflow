@@ -218,7 +218,7 @@
 }
 
 .raw-text-highlight {
-  background: rgba(57, 255, 136, 0.18);
+  background: transparent;
   border-radius: 0.2rem;
   padding: 0.1rem 0;
   position: relative;
@@ -422,7 +422,7 @@
 
 .review-approved {
   color: #39ff88;
-  background: #071207;
+  background: #000000;
   border-color: #14532d;
 }
 
@@ -458,7 +458,7 @@
 
 .entity-review-approve:hover:not(:disabled) {
   border-color: #22c55e;
-  background: #071207;
+  background: #000000;
   color: #39ff88;
 }
 

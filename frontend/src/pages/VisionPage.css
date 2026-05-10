@@ -1,7 +1,7 @@
 .vision-page {
   --vision-bg: #000;
-  --vision-panel: #050805;
-  --vision-panel-soft: #081108;
+  --vision-panel: #000000;
+  --vision-panel-soft: #000000;
   --vision-border: #16351f;
   --vision-text: #b7e7c1;
   --vision-heading: #eaffef;
@@ -60,7 +60,7 @@
   padding: 1.2rem 1.3rem;
   border: 1px dashed var(--vision-border);
   border-radius: 0.35rem;
-  background: #050805;
+  background: #000000;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -68,7 +68,7 @@
 .vision-upload-card:hover {
   transform: translateY(-2px);
   border-color: var(--vision-accent);
-  box-shadow: 0 0 0 1px rgba(57, 255, 136, 0.18);
+  box-shadow: 0 0 0 1px transparent;
 }
 
 .vision-upload-icon {
@@ -77,7 +77,7 @@
   width: 3rem;
   height: 3rem;
   border-radius: 0.25rem;
-  background: #0b1f10;
+  background: #000000;
   font-size: 1.25rem;
 }
 
@@ -115,7 +115,7 @@
   padding: 1rem 1.25rem;
   border: 1px solid var(--vision-border);
   border-radius: 0.35rem;
-  background: #050805;
+  background: #000000;
   box-shadow: none;
 }
 
@@ -139,7 +139,7 @@
 
 .vision-secondary-button {
   min-width: 0;
-  background: #071207;
+  background: #000000;
   border-color: var(--vision-border);
   color: var(--vision-heading);
 }
@@ -180,7 +180,7 @@
   padding: 1rem 1.1rem;
   border: 1px solid var(--vision-border);
   border-radius: 0.35rem;
-  background: #050805;
+  background: #000000;
   box-shadow: none;
 }
 
@@ -208,7 +208,7 @@
   padding: 1.25rem;
   border: 1px solid var(--vision-border);
   border-radius: 0.35rem;
-  background: #050805;
+  background: #000000;
   box-shadow: none;
 }
 
@@ -231,7 +231,7 @@
   align-items: center;
   padding: 0.45rem 0.75rem;
   border-radius: 999px;
-  background: #0b1f10;
+  background: #000000;
   color: var(--vision-accent-strong);
   font-size: 0.8rem;
   font-weight: 700;
@@ -248,7 +248,7 @@
   max-width: 100%;
   border-radius: 0.35rem;
   overflow: hidden;
-  background: #020402;
+  background: #000000;
   border: 1px solid var(--vision-border);
 }
 
@@ -270,7 +270,7 @@
   color: var(--vision-muted);
   border: 1px dashed var(--vision-border);
   border-radius: 0.35rem;
-  background: #071207;
+  background: #000000;
 }
 
 .vision-empty-state h3,
@@ -333,7 +333,7 @@
   align-items: center;
   padding: 0.35rem 0.65rem;
   border-radius: 999px;
-  background: #0b1f10;
+  background: #000000;
   color: var(--vision-accent-strong);
   font-size: 0.75rem;
   font-weight: 700;
@@ -344,7 +344,7 @@
   margin: 0;
   padding: 1rem;
   border-radius: 0.3rem;
-  background: #020402;
+  background: #000000;
   border: 1px solid var(--vision-border);
   color: var(--vision-heading);
   font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
@@ -375,13 +375,13 @@
   padding: 0.8rem 0.9rem;
   border: 1px solid var(--vision-border);
   border-radius: 0.3rem;
-  background: #020402;
+  background: #000000;
   color: var(--vision-heading);
   font: inherit;
 }
 
 .vision-filter-input:focus {
-  outline: 2px solid rgba(57, 255, 136, 0.22);
+  outline: 2px solid #39ff88;
   border-color: var(--vision-accent);
 }
 
@@ -395,14 +395,14 @@
   border: 1px solid var(--vision-border);
   border-radius: 999px;
   padding: 0.4rem 0.7rem;
-  background: #071207;
+  background: #000000;
   color: var(--vision-text);
   cursor: pointer;
 }
 
 .vision-filter-chips .vision-filter-chip-active {
   border-color: var(--vision-accent);
-  background: #0b1f10;
+  background: #000000;
   color: var(--vision-accent-strong);
 }
 
@@ -418,7 +418,7 @@
   padding: 0.85rem;
   border: 1px solid var(--vision-border);
   border-radius: 0.3rem;
-  background: #020402;
+  background: #000000;
 }
 
 .vision-entity-card span {
