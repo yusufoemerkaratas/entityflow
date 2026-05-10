@@ -1,10 +1,9 @@
-import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react"
+import { type ChangeEvent, useEffect, useRef, useState } from "react"
 
-import { inspectVisionImage, patchVisionDetectionReview } from "../api/client"
+import { extractVisionText, extractVisionTextAndRunPipeline } from "../api/client"
 import type {
-  VisionDetectionWithId,
-  VisionInspectionResponse,
-  VisionReviewStatus,
+  VisionOcrExtractionResponse,
+  VisionOcrResponse,
 } from "../types"
 
 import "./VisionPage.css"
@@ -18,10 +17,6 @@ const ACCEPTED_IMAGE_TYPES = [
   "image/tiff",
 ]
 
-function formatPercent(value: number): string {
-  return `${Math.round(value * 100)}%`
-}
-
 function formatPixels(value: number): string {
   return value.toLocaleString()
 }
@@ -31,13 +26,11 @@ export function VisionPage() {
 
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [inspection, setInspection] = useState<VisionInspectionResponse | null>(null)
-  const [detections, setDetections] = useState<VisionDetectionWithId[]>([])
-  const [selectedDetectionId, setSelectedDetectionId] = useState<number | null>(null)
-  const [pendingReviewIds, setPendingReviewIds] = useState<Set<number>>(
-    () => new Set(),
-  )
+  const [ocrResult, setOcrResult] = useState<VisionOcrResponse | null>(null)
   const [loading, setLoading] = useState(false)
+  const [pipelineLoading, setPipelineLoading] = useState(false)
+  const [pipelineResult, setPipelineResult] =
+    useState<VisionOcrExtractionResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
 
@@ -55,37 +48,9 @@ export function VisionPage() {
     }
   }, [file])
 
-  const activeDetection = useMemo(
-    () =>
-      detections.find((detection) => detection.id === selectedDetectionId) ??
-      detections[0] ??
-      null,
-    [detections, selectedDetectionId],
-  )
-
-  const summaryCards = useMemo(() => {
-    const pending = detections.filter(
-      (detection) => detection.review_status === "pending",
-    ).length
-    const accepted = detections.filter(
-      (detection) => detection.review_status === "accepted",
-    ).length
-    const rejected = detections.filter(
-      (detection) => detection.review_status === "rejected",
-    ).length
-
-    return [
-      { label: "Pending", count: pending, className: "vision-stat-pending" },
-      { label: "Accepted", count: accepted, className: "vision-stat-accepted" },
-      { label: "Rejected", count: rejected, className: "vision-stat-rejected" },
-    ]
-  }, [detections])
-
-  function resetInspectionState() {
-    setInspection(null)
-    setDetections([])
-    setSelectedDetectionId(null)
-    setPendingReviewIds(new Set())
+  function resetOcrState() {
+    setOcrResult(null)
+    setPipelineResult(null)
     setStatusMessage(null)
     setError(null)
   }
@@ -99,17 +64,17 @@ export function VisionPage() {
 
     if (!ACCEPTED_IMAGE_TYPES.includes(nextFile.type)) {
       setFile(null)
-      resetInspectionState()
+      resetOcrState()
       setError("Please choose a JPG, PNG, WEBP, GIF, BMP, or TIFF image.")
       if (fileInputRef.current) fileInputRef.current.value = ""
       return
     }
 
     setFile(nextFile)
-    resetInspectionState()
+    resetOcrState()
   }
 
-  async function handleInspect() {
+  async function handleExtract() {
     if (!file || loading) return
 
     setLoading(true)
@@ -117,99 +82,83 @@ export function VisionPage() {
     setStatusMessage(null)
 
     try {
-      const response = await inspectVisionImage(file)
-      const nextDetections = response.detections
+      const response = await extractVisionText(file)
+      setOcrResult(response)
 
-      setInspection(response)
-      setDetections(nextDetections)
-      setSelectedDetectionId(nextDetections[0]?.id ?? null)
-
-      if (nextDetections.length === 0) {
-        setStatusMessage("No visual detections were found in this image.")
+      if (response.is_empty) {
+        setStatusMessage("OCR completed, but no readable text was found.")
       } else {
         setStatusMessage(
-          `Found ${nextDetections.length} detection${
-            nextDetections.length === 1 ? "" : "s"
-          }.`,
+          `OCR extracted ${response.char_count.toLocaleString()} characters.`,
         )
       }
-    } catch (inspectionError) {
+    } catch (ocrError) {
       setError(
-        inspectionError instanceof Error
-          ? inspectionError.message
-          : "Visual inspection failed.",
+        ocrError instanceof Error ? ocrError.message : "OCR extraction failed.",
       )
     } finally {
       setLoading(false)
     }
   }
 
-  async function updateDetectionStatus(
-    detectionId: number,
-    reviewStatus: VisionReviewStatus,
-  ) {
-    const previousDetections = detections
+  async function handleRunPipeline(extractors: string) {
+    if (!file || pipelineLoading) return
 
-    setPendingReviewIds((current) => new Set(current).add(detectionId))
-    setSelectedDetectionId(detectionId)
+    setPipelineLoading(true)
     setError(null)
-
-    setDetections((current) =>
-      current.map((detection) =>
-        detection.id === detectionId
-          ? { ...detection, review_status: reviewStatus }
-          : detection,
-      ),
-    )
+    setStatusMessage(null)
 
     try {
-      const updatedDetection = await patchVisionDetectionReview(
-        detectionId,
-        reviewStatus,
+      const response = await extractVisionTextAndRunPipeline(file, extractors)
+      setOcrResult(response.ocr)
+      setPipelineResult(response)
+      setStatusMessage(
+        `Pipeline completed on document #${response.document_id} (${response.source_type}).`,
       )
-
-      setDetections((current) =>
-        current.map((detection) =>
-          detection.id === detectionId ? updatedDetection : detection,
-        ),
-      )
-      setStatusMessage(`Saved detection as ${updatedDetection.review_status}.`)
-    } catch (reviewError) {
-      setDetections(previousDetections)
-      setStatusMessage(null)
+    } catch (pipelineError) {
       setError(
-        reviewError instanceof Error
-          ? reviewError.message
-          : "Failed to save detection review.",
+        pipelineError instanceof Error
+          ? pipelineError.message
+          : "OCR pipeline execution failed.",
       )
     } finally {
-      setPendingReviewIds((current) => {
-        const next = new Set(current)
-        next.delete(detectionId)
-        return next
-      })
+      setPipelineLoading(false)
     }
   }
 
-  function selectDetection(detectionId: number) {
-    setSelectedDetectionId(detectionId)
-  }
-
-  function isReviewingDetection(detectionId: number): boolean {
-    return pendingReviewIds.has(detectionId)
-  }
-
-  const imageWidth = inspection?.image_width ?? 1
-  const imageHeight = inspection?.image_height ?? 1
+  const summaryItems = [
+    {
+      label: "Image size",
+      value: ocrResult
+        ? `${ocrResult.image_width} × ${ocrResult.image_height}`
+        : "Waiting for OCR",
+    },
+    {
+      label: "Characters",
+      value: ocrResult ? ocrResult.char_count.toLocaleString() : "0",
+    },
+    {
+      label: "OCR engine",
+      value: ocrResult?.engine ?? "Not run yet",
+    },
+    {
+      label: "Status",
+      value: ocrResult
+        ? ocrResult.is_empty
+          ? "No text found"
+          : "Text extracted"
+        : "Idle",
+    },
+  ]
 
   return (
     <section className="page-card vision-page">
       <div className="page-header">
         <p className="eyebrow">Computer vision</p>
-        <h2>Visual inspection workspace</h2>
+        <h2>OCR extraction workspace</h2>
         <p>
-          Upload an image, run inspection, and review the detected regions
-          directly on top of the preview.
+          Upload an image, run OCR, and inspect the extracted text before
+          sending it into the entity extraction workflow.
         </p>
       </div>
 
@@ -236,10 +185,18 @@ export function VisionPage() {
           <button
             type="button"
             className="vision-primary-button"
-            onClick={handleInspect}
-            disabled={!file || loading}
+            onClick={handleExtract}
+            disabled={!file || loading || pipelineLoading}
           >
-            {loading ? "Inspecting…" : "Run visual inspection"}
+            {loading ? "Running OCR…" : "Extract text from image"}
+          </button>
+          <button
+            type="button"
+            className="vision-primary-button"
+            onClick={() => handleRunPipeline("regex,spacy_de")}
+            disabled={!file || loading || pipelineLoading}
+          >
+            {pipelineLoading ? "Running pipeline…" : "Run OCR + regex + spaCy"}
           </button>
 
           <div className="vision-file-meta">
@@ -268,27 +225,10 @@ export function VisionPage() {
       )}
 
       <div className="vision-summary-grid">
-        <article className="vision-summary-card">
-          <span>Image size</span>
-          <strong>
-            {inspection
-              ? `${inspection.image_width} × ${inspection.image_height}`
-              : "Waiting for inspection"}
-          </strong>
-        </article>
-
-        <article className="vision-summary-card">
-          <span>Detections</span>
-          <strong>{detections.length}</strong>
-        </article>
-
-        {summaryCards.map((summary) => (
-          <article
-            key={summary.label}
-            className={`vision-summary-card ${summary.className}`}
-          >
-            <span>{summary.label}</span>
-            <strong>{summary.count}</strong>
+        {summaryItems.map((item) => (
+          <article key={item.label} className="vision-summary-card">
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
           </article>
         ))}
       </div>
@@ -298,11 +238,11 @@ export function VisionPage() {
           <header className="vision-panel-header">
             <div>
               <p className="eyebrow">Image preview</p>
-              <h3>{inspection?.filename ?? file?.name ?? "No image loaded"}</h3>
+              <h3>{ocrResult?.filename ?? file?.name ?? "No image loaded"}</h3>
             </div>
 
             <span className="vision-panel-chip">
-              {inspection ? `${detections.length} detections` : "Awaiting upload"}
+              {ocrResult ? `${ocrResult.char_count} chars` : "Awaiting upload"}
             </span>
           </header>
 
@@ -313,205 +253,108 @@ export function VisionPage() {
                 src={previewUrl}
                 alt={file?.name ?? "Uploaded preview"}
               />
-
-              {inspection && (
-                <div className="vision-overlay">
-                  {detections.map((detection) => {
-                    const isActive = detection.id === activeDetection?.id
-                    const left = (detection.bbox.x / imageWidth) * 100
-                    const top = (detection.bbox.y / imageHeight) * 100
-                    const width = (detection.bbox.width / imageWidth) * 100
-                    const height = (detection.bbox.height / imageHeight) * 100
-
-                    return (
-                      <button
-                        key={detection.id}
-                        type="button"
-                        className={`vision-box ${
-                          isActive ? "vision-box-active" : ""
-                        } vision-status-${detection.review_status}`}
-                        style={{
-                          left: `${left}%`,
-                          top: `${top}%`,
-                          width: `${width}%`,
-                          height: `${height}%`,
-                        }}
-                        onClick={() => selectDetection(detection.id)}
-                        aria-label={`${detection.label}, ${detection.review_status}`}
-                      >
-                        <span className="vision-box-label">
-                          {detection.label}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
             </div>
           ) : (
             <div className="vision-empty-state">
               <span className="vision-empty-icon">🪟</span>
               <h3>No image selected</h3>
               <p>
-                Pick an image on the left to preview it here and draw the visual
-                detections after inspection.
+                Pick an image on the left to preview it here before running OCR.
               </p>
             </div>
           )}
         </section>
 
-        <aside className="vision-review-panel">
+        <aside className="vision-result-panel">
           <header className="vision-panel-header">
             <div>
-              <p className="eyebrow">Detection review</p>
-              <h3>Results and review state</h3>
+              <p className="eyebrow">OCR result</p>
+              <h3>Extracted text</h3>
             </div>
+
             <span className="vision-panel-chip vision-panel-chip-backend">
-              Saved to backend
+              Ready for NLP
             </span>
           </header>
 
-          {activeDetection ? (
-            <div className="vision-active-card">
-              <div className="vision-active-heading">
-                <div>
-                  <p className="vision-active-label">Selected detection</p>
-                  <h4>{activeDetection.label}</h4>
+          {ocrResult ? (
+            <div className="vision-ocr-stack">
+              <section className="vision-ocr-card">
+                <div className="vision-ocr-card-header">
+                  <div>
+                    <p className="vision-ocr-label">Normalized OCR text</p>
+                    <h4>
+                      {ocrResult.is_empty ? "No readable text found" : "OCR output"}
+                    </h4>
+                  </div>
+
+                  <span className="vision-ocr-engine">{ocrResult.engine}</span>
                 </div>
 
-                <span className={`vision-status-pill vision-status-${activeDetection.review_status}`}>
-                  {activeDetection.review_status}
-                </span>
-              </div>
+                {ocrResult.is_empty ? (
+                  <div className="vision-empty-table">
+                    <h3>No text extracted</h3>
+                    <p>
+                      Try a higher-contrast image with clearer printed text,
+                      such as an email signature, label, or document crop.
+                    </p>
+                  </div>
+                ) : (
+                  <pre className="vision-ocr-text">{ocrResult.extracted_text}</pre>
+                )}
+              </section>
 
-              <dl className="vision-details-grid">
-                <div>
-                  <dt>Confidence</dt>
-                  <dd>{formatPercent(activeDetection.confidence)}</dd>
-                </div>
-                <div>
-                  <dt>Coordinates</dt>
-                  <dd>
-                    {activeDetection.bbox.x}, {activeDetection.bbox.y}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Size</dt>
-                  <dd>
-                    {activeDetection.bbox.width} × {activeDetection.bbox.height}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Box area</dt>
-                  <dd>
-                    {(activeDetection.bbox.width * activeDetection.bbox.height).toLocaleString()}
-                  </dd>
-                </div>
-              </dl>
+              <section className="vision-ocr-card">
+                <p className="vision-ocr-label">Raw OCR text</p>
+                <pre className="vision-ocr-text vision-ocr-text-raw">
+                  {ocrResult.raw_text || "No raw OCR output."}
+                </pre>
+              </section>
 
-              <div className="vision-review-actions">
-                <button
-                  type="button"
-                  className="vision-action-button vision-action-accept"
-                  onClick={() => updateDetectionStatus(activeDetection.id, "accepted")}
-                  disabled={isReviewingDetection(activeDetection.id)}
-                >
-                  Approve
-                </button>
-                <button
-                  type="button"
-                  className="vision-action-button vision-action-reject"
-                  onClick={() => updateDetectionStatus(activeDetection.id, "rejected")}
-                  disabled={isReviewingDetection(activeDetection.id)}
-                >
-                  Reject
-                </button>
-              </div>
+              <section className="vision-ocr-note">
+                <h4>Next step</h4>
+                <p>
+                  This OCR output will be the input for the existing entity
+                  extraction pipeline.
+                </p>
+              </section>
+
+              {pipelineResult && (
+                <section className="vision-ocr-card">
+                  <p className="vision-ocr-label">Entity extraction result</p>
+                  <h4>Document #{pipelineResult.document_id}</h4>
+                  {Object.entries(pipelineResult.results).map(
+                    ([extractorName, entities]) => (
+                      <div key={extractorName}>
+                        <p className="vision-ocr-label">
+                          {extractorName} ({entities.length})
+                        </p>
+                        {entities.length === 0 ? (
+                          <p className="vision-ocr-text">No entities extracted.</p>
+                        ) : (
+                          <ul className="vision-entity-list">
+                            {entities.map((entity, index) => (
+                              <li key={`${extractorName}-${entity.entity_text}-${index}`}>
+                                <strong>{entity.entity_type}:</strong> {entity.entity_text}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ),
+                  )}
+                </section>
+              )}
             </div>
           ) : (
             <div className="vision-empty-table">
-              <h3>No detections yet</h3>
+              <h3>No OCR result yet</h3>
               <p>
-                Run inspection to populate the review table and bounding boxes.
+                Run OCR to populate the extracted text panel and prepare the
+                image content for downstream entity extraction.
               </p>
             </div>
           )}
-
-          <div className="vision-table-wrap">
-            <table className="vision-table">
-              <thead>
-                <tr>
-                  <th>Label</th>
-                  <th>Confidence</th>
-                  <th>Box</th>
-                  <th>Status</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {detections.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="vision-table-empty">
-                      Detected regions will appear here.
-                    </td>
-                  </tr>
-                ) : (
-                  detections.map((detection) => {
-                    const isActive = detection.id === activeDetection?.id
-
-                    return (
-                      <tr
-                        key={detection.id}
-                        className={isActive ? "vision-table-row-active" : ""}
-                        onClick={() => selectDetection(detection.id)}
-                      >
-                        <td>
-                          <strong>{detection.label}</strong>
-                        </td>
-                        <td>{formatPercent(detection.confidence)}</td>
-                        <td>
-                          {detection.bbox.x}, {detection.bbox.y}
-                        </td>
-                        <td>
-                          <span
-                            className={`vision-status-pill vision-status-${detection.review_status}`}
-                          >
-                            {detection.review_status}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="vision-row-actions">
-                            <button
-                              type="button"
-                              className="vision-mini-button"
-                              onClick={(event) => {
-                                event.stopPropagation()
-                                updateDetectionStatus(detection.id, "accepted")
-                              }}
-                              disabled={isReviewingDetection(detection.id)}
-                            >
-                              Approve
-                            </button>
-                            <button
-                              type="button"
-                              className="vision-mini-button vision-mini-button-danger"
-                              onClick={(event) => {
-                                event.stopPropagation()
-                                updateDetectionStatus(detection.id, "rejected")
-                              }}
-                              disabled={isReviewingDetection(detection.id)}
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
         </aside>
       </div>
     </section>

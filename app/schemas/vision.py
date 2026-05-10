@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import Dict, List, Literal
 
 from pydantic import BaseModel, Field
 
@@ -66,3 +66,24 @@ class VisionOcrResponse(BaseModel):
     char_count: int = Field(..., ge=0, description="Character count of the normalized OCR text.")
     is_empty: bool = Field(..., description="Whether OCR returned usable text.")
     engine: str = Field(..., description="OCR engine identifier used for extraction.")
+
+
+class VisionOcrExtractionRun(BaseModel):
+    extractor_name: str = Field(..., description="Extractor key used in the run.")
+    extraction_id: int = Field(..., description="Created extraction row identifier.")
+    entity_count: int = Field(..., ge=0, description="Entity count found by this extractor.")
+
+
+class VisionOcrExtractionResponse(BaseModel):
+    document_id: int = Field(..., description="Document id created/reused for OCR text.")
+    source_type: str = Field(..., description="Document source marker for provenance.")
+    is_duplicate_document: bool = Field(..., description="Whether OCR text matched an existing document.")
+    ocr: VisionOcrResponse = Field(..., description="OCR output used as extraction input.")
+    runs: List[VisionOcrExtractionRun] = Field(
+        default_factory=list,
+        description="Extractor runs executed for this OCR upload.",
+    )
+    results: Dict[str, List[dict]] = Field(
+        default_factory=dict,
+        description="Extractor output grouped by extractor name.",
+    )

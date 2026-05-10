@@ -9,6 +9,8 @@ import type {
   ReviewedEntity,
   VisionInspectionResponse,
   VisionDetectionWithId,
+  VisionOcrExtractionResponse,
+  VisionOcrResponse,
   VisionReviewStatus,
 } from "../types"
 
@@ -143,6 +145,27 @@ export function inspectVisionImage(
   formData.append("file", file)
 
   return requestFormData<VisionInspectionResponse>("/vision/inspect", formData)
+}
+
+export function extractVisionText(file: File): Promise<VisionOcrResponse> {
+  const formData = new FormData()
+  formData.append("file", file)
+
+  return requestFormData<VisionOcrResponse>("/vision/ocr", formData)
+}
+
+export function extractVisionTextAndRunPipeline(
+  file: File,
+  extractors: string,
+): Promise<VisionOcrExtractionResponse> {
+  const formData = new FormData()
+  formData.append("file", file)
+
+  const params = new URLSearchParams({ extractors })
+  return requestFormData<VisionOcrExtractionResponse>(
+    `/vision/ocr/extract?${params.toString()}`,
+    formData,
+  )
 }
 
 export function patchVisionDetectionReview(

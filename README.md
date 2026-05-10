@@ -12,7 +12,7 @@ EntityFlow now covers two linked workflows:
 
 1. Text extraction: upload unstructured text, run regex + spaCy + LLM extractors, compare the outputs side by side, and review the extracted entities.
 2. Computer vision inspection: upload an image, run a lightweight visual inspection pipeline, view detected regions on top of the image, and approve or reject each detection.
-
+ck
 The review flow is human-in-the-loop in both modes. Text entities and visual detections can be reviewed from the UI, and the choice is stored as `review_status` in the database.
 
 **Extracted entity types:** Person · Organization · Location · Title · Address · Email · Phone · URL

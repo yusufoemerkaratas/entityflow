@@ -1,3 +1,5 @@
+import hashlib
+
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -17,10 +19,13 @@ from app.db.database import get_db
 from app.schemas.vision import (
     BoundingBox,
     VisionDetectionReviewRequest,
+    VisionOcrExtractionResponse,
+    VisionOcrExtractionRun,
     VisionInspectionResponse,
     VisionOcrResponse,
     VisualDetectionOut,
 )
+from app.services.extraction_pipeline import parse_extractors, run_extractor_and_persist
 
 
 router = APIRouter(prefix="/vision", tags=["vision"])
@@ -65,6 +70,129 @@ async def extract_ocr_text(
             char_count=ocr_result.char_count,
             is_empty=ocr_result.is_empty,
             engine=ocr_result.engine,
+        )
+    except InvalidImageError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+    except OcrEngineUnavailableError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
+    except OcrProcessingError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc),
+        ) from exc
+
+
+@router.post("/ocr/extract", response_model=VisionOcrExtractionResponse)
+async def extract_ocr_and_run_extractors(
+    file: UploadFile = File(...),
+    extractors: str = "regex,spacy_de",
+    db: Session = Depends(get_db),
+) -> VisionOcrExtractionResponse:
+    """Run OCR and feed the text into the existing entity extraction pipeline."""
+
+    try:
+        validate_image_content_type(file.content_type)
+        selected_extractors = parse_extractors(extractors)
+
+        image_bytes = await file.read()
+        image = decode_image_bytes(image_bytes)
+        ocr_result = extract_text_from_image(image)
+
+        if ocr_result.is_empty:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="OCR returned empty text. Use an image with readable text.",
+            )
+
+        source_type = "image_ocr"
+        content_hash = hashlib.sha256(ocr_result.extracted_text.encode("utf-8")).hexdigest()
+        char_count = len(ocr_result.extracted_text)
+
+        existing_document = db.execute(
+            text(
+                """
+                SELECT id
+                FROM documents
+                WHERE content_hash = :content_hash
+                """
+            ),
+            {"content_hash": content_hash},
+        ).mappings().first()
+
+        is_duplicate_document = existing_document is not None
+        if existing_document:
+            document_id = existing_document["id"]
+        else:
+            inserted_document = db.execute(
+                text(
+                    """
+                    INSERT INTO documents (raw_text, source_type, content_hash, char_count)
+                    VALUES (:raw_text, :source_type, :content_hash, :char_count)
+                    RETURNING id
+                    """
+                ),
+                {
+                    "raw_text": ocr_result.extracted_text,
+                    "source_type": source_type,
+                    "content_hash": content_hash,
+                    "char_count": char_count,
+                },
+            ).mappings().first()
+            document_id = inserted_document["id"]
+
+        run_summaries = []
+        results = {}
+
+        for extractor in selected_extractors:
+            extraction_result = run_extractor_and_persist(
+                db=db,
+                document_id=document_id,
+                raw_text=ocr_result.extracted_text,
+                extractor=extractor,
+            )
+            run_summaries.append(
+                VisionOcrExtractionRun(
+                    extractor_name=extractor,
+                    extraction_id=extraction_result.extraction_id,
+                    entity_count=len(extraction_result.entities),
+                )
+            )
+            results[extractor] = [
+                {
+                    "entity_type": entity.entity_type,
+                    "entity_text": entity.entity_text,
+                    "span_start": entity.span_start,
+                    "span_end": entity.span_end,
+                    "confidence": entity.confidence,
+                }
+                for entity in extraction_result.entities
+            ]
+
+        db.commit()
+
+        height, width = image.shape[:2]
+        return VisionOcrExtractionResponse(
+            document_id=document_id,
+            source_type=source_type,
+            is_duplicate_document=is_duplicate_document,
+            ocr=VisionOcrResponse(
+                filename=file.filename or "uploaded-image",
+                image_width=width,
+                image_height=height,
+                extracted_text=ocr_result.extracted_text,
+                raw_text=ocr_result.raw_text,
+                char_count=ocr_result.char_count,
+                is_empty=ocr_result.is_empty,
+                engine=ocr_result.engine,
+            ),
+            runs=run_summaries,
+            results=results,
         )
     except InvalidImageError as exc:
         raise HTTPException(
