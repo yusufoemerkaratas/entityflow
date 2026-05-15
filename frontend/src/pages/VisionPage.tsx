@@ -124,8 +124,11 @@ export function VisionPage({ embedded = false }: VisionPageProps) {
       const response = await extractVisionTextAndRunPipeline(file, extractors)
       setOcrResult(response.ocr)
       setPipelineResult(response)
+      const completedExtractors = response.runs
+        .map((run) => run.extractor_name)
+        .join(", ")
       setStatusMessage(
-        `Pipeline completed on document #${response.document_id} (${response.source_type}).`,
+        `Pipeline completed on document #${response.document_id} with ${completedExtractors}.`,
       )
     } catch (pipelineError) {
       setError(
@@ -208,10 +211,10 @@ export function VisionPage({ embedded = false }: VisionPageProps) {
           <button
             type="button"
             className="vision-primary-button"
-            onClick={() => handleRunPipeline("regex,spacy_de")}
+            onClick={() => handleRunPipeline("regex,spacy_de,llm_mini")}
             disabled={!file || loading || pipelineLoading}
           >
-            {pipelineLoading ? "Running pipeline…" : "Run OCR + regex + spaCy"}
+            {pipelineLoading ? "Running pipeline…" : "Run OCR + all extractors"}
           </button>
           <label className="vision-secondary-button" htmlFor="vision-camera-input">
             Take photo

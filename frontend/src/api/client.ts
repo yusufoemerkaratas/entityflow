@@ -1,5 +1,6 @@
 import type {
   ComparisonResponse,
+  DashboardSummaryResponse,
   DocumentDetail,
   DocumentCreateRequest,
   DocumentResponse,
@@ -85,6 +86,10 @@ async function readErrorMessage(response: Response): Promise<string> {
 
 export function getHealth(): Promise<HealthResponse> {
   return requestJson<HealthResponse>("/health")
+}
+
+export function getDashboardSummary(): Promise<DashboardSummaryResponse> {
+  return requestJson<DashboardSummaryResponse>("/dashboard/summary")
 }
 
 export function createDocument(

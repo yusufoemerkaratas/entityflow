@@ -2,11 +2,18 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+LlmFieldValue = str | list[str]
+
 
 class LlmExtractionResult(BaseModel):
-    name: Optional[str] = None
-    title: Optional[str] = None
-    company: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
+    name: Optional[LlmFieldValue] = None
+    title: Optional[LlmFieldValue] = None
+    company: Optional[LlmFieldValue] = None
+    location: Optional[LlmFieldValue] = None
+    country: Optional[LlmFieldValue] = None
+    email: Optional[LlmFieldValue] = None
+    phone: Optional[LlmFieldValue] = None
+    domain: Optional[LlmFieldValue] = None
+    url: Optional[LlmFieldValue] = None
+    ip_like: Optional[LlmFieldValue] = None
+    address: Optional[LlmFieldValue] = None

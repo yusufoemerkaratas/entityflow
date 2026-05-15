@@ -12,8 +12,8 @@
 
 .results-header-pill {
   padding: 0.4rem 0.85rem;
-  border-radius: 999px;
-  background: var(--surface);
+  border-radius: 0.35rem;
+  background: rgba(47, 107, 255, 0.1);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
   color: var(--text-heading);
@@ -26,7 +26,7 @@
   gap: 1rem;
   padding: 1.5rem;
   border: 1px solid var(--border);
-  border-radius: 1.25rem;
+  border-radius: 0.55rem;
   background: var(--surface);
   color: var(--text-heading);
   box-shadow: var(--shadow-sm);
@@ -35,7 +35,7 @@
 .results-error {
   flex-direction: column;
   align-items: flex-start;
-  border-left: 4px solid #ef4444;
+  border-left: 3px solid var(--danger);
 }
 
 .results-spinner {
@@ -67,8 +67,8 @@
   margin-top: 1.5rem;
   padding: 1rem;
   border: 1px solid var(--border);
-  border-radius: 1rem;
-  background: var(--surface);
+  border-radius: 0.55rem;
+  background: rgba(9, 15, 33, 0.9);
   box-shadow: var(--shadow-sm);
 }
 
@@ -95,7 +95,7 @@
 .extractor-run-all {
   align-self: flex-start;
   background: var(--accent);
-  color: #041014;
+  color: #ffffff;
   border-color: transparent;
 }
 
@@ -132,7 +132,7 @@
 .extractor-run-all,
 .extractor-run-button {
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: 0.45rem;
   background: var(--surface-muted);
   color: var(--text-heading);
   cursor: pointer;
@@ -145,7 +145,7 @@
 .extractor-run-all {
   align-self: flex-start;
   background: var(--accent);
-  color: #041014;
+  color: #ffffff;
   border-color: transparent;
 }
 
@@ -165,9 +165,9 @@
 
 .raw-text-panel {
   border: 1px solid var(--border);
-  border-radius: 1.25rem;
+  border-radius: 0.55rem;
   padding: 1.75rem;
-  background: var(--surface);
+  background: rgba(9, 15, 33, 0.88);
   box-shadow: var(--shadow);
 }
 
@@ -195,8 +195,8 @@
 
 .raw-text-pill {
   padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  background: var(--surface-muted);
+  border-radius: 0.35rem;
+  background: rgba(47, 107, 255, 0.1);
   border: 1px solid var(--border);
   font-size: 0.8rem;
   font-weight: 600;
@@ -207,8 +207,8 @@
   max-height: 320px;
   overflow: auto;
   padding: 1.5rem;
-  border-radius: 1rem;
-  background: var(--background);
+  border-radius: 0.45rem;
+  background: #050a18;
   border: 1px solid var(--border);
   color: var(--text-heading);
   font-size: 0.95rem;
@@ -218,7 +218,7 @@
 }
 
 .raw-text-highlight {
-  background: rgba(0, 194, 255, 0.16);
+  background: rgba(47, 107, 255, 0.18);
   border-radius: 0.2rem;
   padding: 0.1rem 0;
   position: relative;
@@ -239,9 +239,9 @@
 
 .extractor-column {
   border: 1px solid var(--border);
-  border-radius: 1.25rem;
+  border-radius: 0.55rem;
   padding: 1.5rem;
-  background: var(--surface-muted);
+  background: rgba(7, 12, 26, 0.9);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -276,7 +276,7 @@
   justify-content: center;
   min-width: 2.25rem;
   height: 2.25rem;
-  border-radius: 999px;
+  border-radius: 0.35rem;
   background: var(--surface);
   color: var(--accent);
   font-weight: 800;
@@ -287,7 +287,7 @@
 
 .extractor-empty {
   border: 2px dashed var(--border);
-  border-radius: 1rem;
+  border-radius: 0.5rem;
   padding: 2rem 1rem;
   text-align: center;
   color: var(--text);
@@ -352,7 +352,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0.25rem 0.6rem;
-  border-radius: 0.4rem;
+  border-radius: 0.32rem;
   color: #ffffff;
   box-shadow: 0 2px 4px rgba(0,0,0,0.14);
 }
@@ -363,7 +363,7 @@
   font-family: var(--mono);
   background: var(--surface-muted);
   padding: 0.2rem 0.5rem;
-  border-radius: 0.4rem;
+  border-radius: 0.32rem;
   font-weight: 600;
 }
 
@@ -406,7 +406,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.6rem;
-  border-radius: 0.4rem;
+  border-radius: 0.32rem;
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.05em;
@@ -415,26 +415,26 @@
 }
 
 .review-pending {
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.26);
+  color: var(--warning);
+  background: var(--warning-bg);
+  border-color: rgba(255, 157, 28, 0.26);
 }
 
 .review-approved {
-  color: #22c55e;
-  background: rgba(34, 197, 94, 0.12);
-  border-color: rgba(34, 197, 94, 0.26);
+  color: var(--success);
+  background: var(--success-bg);
+  border-color: rgba(52, 214, 122, 0.26);
 }
 
 .review-rejected {
-  color: #fecaca;
-  background: #140506;
-  border-color: #7f1d1d;
+  color: #ffb2bf;
+  background: var(--danger-bg);
+  border-color: rgba(255, 49, 85, 0.34);
 }
 
 .entity-review-button {
   border: 1px solid var(--border);
-  border-radius: 0.6rem;
+  border-radius: 0.4rem;
   background: var(--surface);
   color: var(--text-heading);
   cursor: pointer;
@@ -457,15 +457,15 @@
 }
 
 .entity-review-approve:hover:not(:disabled) {
-  border-color: #22c55e;
-  background: rgba(34, 197, 94, 0.12);
-  color: #86efac;
+  border-color: var(--success);
+  background: var(--success-bg);
+  color: #97efbb;
 }
 
 .entity-review-reject:hover:not(:disabled) {
-  border-color: #ef4444;
-  background: #140506;
-  color: #fecaca;
+  border-color: var(--danger);
+  background: var(--danger-bg);
+  color: #ffb2bf;
 }
 
 .results-review-error {
@@ -479,7 +479,7 @@
   gap: 1rem;
   padding: 1.25rem;
   border: 1px solid var(--border);
-  border-radius: 1rem;
+  border-radius: 0.55rem;
   background: var(--surface);
   color: var(--text);
   box-shadow: var(--shadow-sm);
@@ -528,12 +528,12 @@
 }
 
 /* Entity Type Colors (Clean Vibrant Palette) */
-.entity-type-email { background: #3b82f6; }
-.entity-type-phone { background: #06b6d4; }
+.entity-type-email { background: #2f6bff; }
+.entity-type-phone { background: #2da8ff; }
 .entity-type-url { background: #8b5cf6; }
-.entity-type-person { background: #10b981; }
-.entity-type-organization { background: #f59e0b; }
-.entity-type-location { background: #ef4444; }
+.entity-type-person { background: #34d67a; }
+.entity-type-organization { background: #ff9d1c; }
+.entity-type-location { background: #ff3155; }
 .entity-type-title { background: #ec4899; }
 .entity-type-address { background: #14b8a6; }
 .entity-type-default { background: var(--text); }
