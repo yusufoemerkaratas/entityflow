@@ -5,6 +5,15 @@ export type {
 } from "./document"
 
 export type {
+  DashboardFinding,
+  DashboardSeverityCount,
+  DashboardSourceCount,
+  DashboardStats,
+  DashboardSummaryResponse,
+  DashboardTimePoint,
+} from "./dashboard"
+
+export type {
   ComparisonResponse,
   ExtractedEntity,
   ExtractionMeta,
