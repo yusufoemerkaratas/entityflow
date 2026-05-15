@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 from typing import List
@@ -26,7 +27,9 @@ class LlmExtractor(BaseExtractor):
         prompt = self._build_prompt(text)
         raw_response = self._call_model(prompt)
         parsed_result = self._parse_response(raw_response)
-        return self._to_entities(parsed_result)
+        llm_entities = self._to_entities(parsed_result)
+        literal_entities = self._extract_contact_literals(text)
+        return self._merge_entities(llm_entities, literal_entities)
 
     def _build_prompt(self, text: str) -> str:
         return f"""
@@ -36,24 +39,38 @@ Extract the following fields from the input text:
 - name
 - title
 - company
+- location
+- country
 - email
 - phone
+- domain
+- url
+- ip_like
 - address
 
 Rules:
 - Return ONLY valid JSON.
-- Use null for missing values.
+- Return arrays of strings for every field.
+- Use an empty array for missing values.
 - Do not invent facts.
 - Keep extracted values exactly as they appear in the text when possible.
+- Extract multiple values when the text contains lists or repeated mock records.
+- Treat .example domains and 555-style phone numbers as valid mock values.
+- Do not include headings, prose, or policy instructions as extracted values.
 
 Expected JSON format:
 {{
-  "name": null,
-  "title": null,
-  "company": null,
-  "email": null,
-  "phone": null,
-  "address": null
+  "name": [],
+  "title": [],
+  "company": [],
+  "location": [],
+  "country": [],
+  "email": [],
+  "phone": [],
+  "domain": [],
+  "url": [],
+  "ip_like": [],
+  "address": []
 }}
 
 Input text:
@@ -127,25 +144,95 @@ Input text:
             "name": "person",
             "title": "title",
             "company": "organization",
+            "location": "location",
+            "country": "location",
             "email": "email",
             "phone": "phone",
+            "domain": "url",
+            "url": "url",
+            "ip_like": "ip_like",
             "address": "address",
         }
 
         for field_name, entity_type in field_mapping.items():
             value = getattr(result, field_name)
 
-            if value is None or value.strip() == "":
-                continue
+            values = self._normalize_values(value)
 
-            entities.append(
-                ExtractedEntity(
-                    entity_type=entity_type,
-                    entity_text=value,
-                    span_start=-1,
-                    span_end=-1,
-                    confidence=1.0,
+            for item in values:
+                entities.append(
+                    ExtractedEntity(
+                        entity_type=entity_type,
+                        entity_text=item,
+                        span_start=-1,
+                        span_end=-1,
+                        confidence=1.0,
+                    )
                 )
-            )
 
         return entities
+
+    def _normalize_values(self, value: str | list[str] | None) -> list[str]:
+        if value is None:
+            return []
+
+        if isinstance(value, str):
+            candidates = [value]
+        else:
+            candidates = value
+
+        seen = set()
+        normalized_values = []
+        for candidate in candidates:
+            if not isinstance(candidate, str):
+                continue
+
+            cleaned = candidate.strip()
+            if not cleaned or cleaned in seen:
+                continue
+
+            seen.add(cleaned)
+            normalized_values.append(cleaned)
+
+        return normalized_values
+
+    def _extract_contact_literals(self, text: str) -> list[ExtractedEntity]:
+        patterns = {
+            "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b",
+            "phone": r"(?<!\w)\+\d{1,3}(?:[\s-]?\(?\d+\)?){2,}(?!\w)",
+            "url": r"\b(?:[A-Za-z0-9-]+\.)+(?:example|test|invalid|localhost|com|net|org|dev|io)\b",
+            "ip_like": r"\b(?:\d{1,3}\.){3}\d{1,3}\b",
+        }
+        entities: list[ExtractedEntity] = []
+
+        for entity_type, pattern in patterns.items():
+            for match in re.finditer(pattern, text):
+                entities.append(
+                    ExtractedEntity(
+                        entity_type=entity_type,
+                        entity_text=match.group(0),
+                        span_start=match.start(),
+                        span_end=match.end(),
+                        confidence=1.0,
+                    )
+                )
+
+        return entities
+
+    def _merge_entities(
+        self,
+        primary_entities: list[ExtractedEntity],
+        fallback_entities: list[ExtractedEntity],
+    ) -> list[ExtractedEntity]:
+        merged: list[ExtractedEntity] = []
+        seen = set()
+
+        for entity in [*primary_entities, *fallback_entities]:
+            key = (entity.entity_type, entity.entity_text)
+            if key in seen:
+                continue
+
+            seen.add(key)
+            merged.append(entity)
+
+        return merged
