@@ -27,6 +27,7 @@ This is not a toy OCR page bolted onto an NLP app. The OCR output is connected t
 - Convert image text into `source_type=image_ocr` documents and run the same extractor pipeline on OCR-derived text.
 - Compare extractor outputs side by side for the same document.
 - Review entities with `pending`, `approved`, and `rejected` states persisted in PostgreSQL.
+- Surface dashboard summary metrics and recent findings through the same backend API used by the homepage.
 - Detect duplicate documents through SHA-256 content hashes.
 - Run the full stack with Docker Compose: PostgreSQL, FastAPI, and the React frontend.
 - Use a dark operations-style frontend with a live dashboard, extraction workspace, and OCR review surfaces that share one visual system.
@@ -59,7 +60,7 @@ This is not a toy OCR page bolted onto an NLP app. The OCR output is connected t
 4. Tesseract extracts raw text.
 5. The backend normalizes the OCR text and returns OCR metadata.
 6. The OCR text can be stored as a document with `source_type=image_ocr`.
-7. Regex and spaCy can run immediately on the OCR-derived document.
+7. The OCR pipeline can run `regex`, `spacy_de`, and `llm_mini` on the OCR-derived document.
 8. Extracted entities are displayed with search and type filters.
 
 ### 3. Human-in-the-Loop Review
@@ -162,13 +163,14 @@ The printed metrics are a local benchmark for the included sample set, not a pro
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET` | `/health` | DB-aware health check |
+| `GET` | `/dashboard/summary` | Return dashboard metrics, recent findings, and review activity |
 | `POST` | `/documents` | Create or reuse a text document |
 | `GET` | `/documents/{id}` | Fetch raw document text and metadata |
 | `POST` | `/documents/{id}/extract?extractor=...` | Run `regex`, `spacy_de`, or `llm_mini` |
 | `GET` | `/documents/{id}/extractions` | Compare extractor outputs for one document |
 | `PATCH` | `/entities/{id}/review` | Persist `approved` or `rejected` review state |
 | `POST` | `/vision/ocr` | Extract readable text from an uploaded image |
-| `POST` | `/vision/ocr/extract?extractors=regex,spacy_de` | OCR image, create/reuse document, run extractors |
+| `POST` | `/vision/ocr/extract?extractors=regex,spacy_de,llm_mini` | OCR image, create/reuse document, run one or more extractors |
 | `POST` | `/vision/inspect` | Deprecated compatibility alias for OCR-first extraction |
 
 Full Swagger docs are available at:
@@ -185,19 +187,19 @@ http://localhost:8000/docs
 
 ```bash
 curl -X POST "http://localhost:8000/vision/ocr" \
-  -F "file=@docs/demo-images/sample-product.png"
+  -F "file=@docs/demo-images/bizay-business-card-mock.png"
 ```
 
 Example response:
 
 ```json
 {
-  "filename": "sample-product.png",
-  "image_width": 400,
-  "image_height": 300,
-  "extracted_text": "Alice Example\nalice@example.com",
-  "raw_text": "Alice Example\n\nalice@example.com\n",
-  "char_count": 31,
+  "filename": "bizay-business-card-mock.png",
+  "image_width": 1100,
+  "image_height": 700,
+  "extracted_text": "EMMA FISCHER NN\nSecurity Manager\n+49 160 00000003\nsupport@alphasolutions.example\nwww.alphasolutions.example A\\",
+  "raw_text": "EMMA FISCHER NN\nSecurity Manager\n+49 160 00000003\nsupport@alphasolutions.example\nwww.alphasolutions.example A\\\n",
+  "char_count": 110,
   "is_empty": false,
   "engine": "tesseract"
 }
@@ -206,8 +208,8 @@ Example response:
 ### OCR plus entity extraction
 
 ```bash
-curl -X POST "http://localhost:8000/vision/ocr/extract?extractors=regex,spacy_de" \
-  -F "file=@docs/demo-images/sample-product.png"
+curl -X POST "http://localhost:8000/vision/ocr/extract?extractors=regex,spacy_de,llm_mini" \
+  -F "file=@docs/demo-images/bizay-business-card-mock.png"
 ```
 
 This creates or reuses an `image_ocr` document, runs the selected extractors, and returns grouped entity results.
@@ -356,6 +358,8 @@ Optional LLM extraction:
 - `LLM_API_KEY` or `OPENAI_API_KEY`
 - `LLM_BASE_URL`
 - `LLM_MODEL_NAME`
+
+If you use Docker Compose as shipped in this repository, `docker-compose.yml` currently maps `LLM_MODEL_NAME` from `${LLM_MODEL}` in the environment. Outside Docker, the extractor reads `LLM_MODEL_NAME` directly.
 
 If these values are unset, or the runtime has no outbound network access, the main application still works with regex and spaCy extraction. `scripts/evaluate.py` will mark the LLM portion as skipped in that environment.
 
