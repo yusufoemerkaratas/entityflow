@@ -32,7 +32,7 @@ This is not a toy OCR page bolted onto an NLP app. The OCR output is connected t
 - Use a terminal-inspired frontend theme designed to make the OCR workflow feel like a focused engineering tool.
 - Validate backend behavior with pytest and frontend type safety with TypeScript builds.
 
-**Extracted entity types:** person, organization, location, title, address, email, phone, url.
+**Extracted entity types:** person, organization, location, title, address, email, phone, url, ip_like.
 
 ---
 
@@ -119,13 +119,21 @@ vision_inspections / vision_detections
 | `LlmExtractor` | Structured LLM extraction | Better recall for noisy or complex text | Requires API configuration and network access |
 | OCR + extractors | Image-to-entity bridge | Turns screenshots/photos into normal documents | OCR quality depends on image clarity |
 
-Evaluation is intentionally small and reproducible. Metrics are calculated against `data/samples.json`:
+Evaluation is intentionally lightweight and reproducible. Metrics are calculated against the mock golden set in `data/samples.json`:
 
 ```bash
 python scripts/evaluate.py
 ```
 
-The table values in docs should be read as a local benchmark for the included sample set, not as a production accuracy claim.
+The included golden set currently contains 12 fictional samples with `.example` domains, mock phone numbers, and placeholder IP-like values for safe local testing.
+
+The evaluation script:
+
+- normalizes small schema differences such as `company -> organization`
+- reports missed entities so extractor regressions are easier to inspect
+- marks `llm_mini` as `SKIPPED` when API/network access is unavailable instead of reporting a misleading zero-score run
+
+The printed metrics are a local benchmark for the included sample set, not a production accuracy claim.
 
 ---
 
@@ -267,6 +275,14 @@ Full backend test suite:
 venv/bin/pytest -q
 ```
 
+Local extractor evaluation:
+
+```bash
+venv/bin/python scripts/evaluate.py
+```
+
+This evaluation is designed for fast regression checking on the bundled mock dataset. If the optional LLM extractor cannot reach its configured API, the script will skip that extractor and still report the deterministic extractor results.
+
 Frontend build/type check:
 
 ```bash
@@ -312,7 +328,7 @@ entityflow/
 │   └── schemas/      # Pydantic request/response models
 ├── frontend/         # React + TypeScript frontend
 ├── tests/            # pytest unit and integration tests
-├── data/             # Golden sample set for local extractor evaluation
+├── data/             # Mock golden sample set for local extractor evaluation
 ├── docs/             # Demo scripts, architecture notes, screenshots
 └── scripts/          # Evaluation utilities
 ```
@@ -330,6 +346,8 @@ Optional LLM extraction:
 - `LLM_API_KEY` or `OPENAI_API_KEY`
 - `LLM_BASE_URL`
 - `LLM_MODEL_NAME`
+
+If these values are unset, or the runtime has no outbound network access, the main application still works with regex and spaCy extraction. `scripts/evaluate.py` will mark the LLM portion as skipped in that environment.
 
 Optional OCR overrides:
 
