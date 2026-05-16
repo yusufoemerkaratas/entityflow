@@ -1,52 +1,126 @@
 [
   {
     "id": 1,
-    "text": "My name is Thomas Müller. I work at BMW AG as Senior Engineer. Email: thomas.mueller@bmw.de, Phone: +49 89 12345678",
+    "text": "Lukas Weber arbeitet als Security Lead bei TechNova GmbH. Email: admin@technova.example, Telefon: +49 151 00000001.",
     "expected": [
-      {"entity_type": "email", "entity_text": "thomas.mueller@bmw.de"},
-      {"entity_type": "phone", "entity_text": "+49 89 12345678"},
-      {"entity_type": "person", "entity_text": "Thomas Müller"},
-      {"entity_type": "organization", "entity_text": "BMW AG"}
+      {"entity_type": "person", "entity_text": "Lukas Weber"},
+      {"entity_type": "title", "entity_text": "Security Lead"},
+      {"entity_type": "organization", "entity_text": "TechNova GmbH"},
+      {"entity_type": "email", "entity_text": "admin@technova.example"},
+      {"entity_type": "phone", "entity_text": "+49 151 00000001"}
     ]
   },
   {
     "id": 2,
-    "text": "Contact us at info@heidelberg-materials.com or call +49 6221 481-0.",
+    "text": "Anna Schneider von CloudBridge SE ist unter security@cloudbridge.example oder +49 152 00000002 erreichbar.",
     "expected": [
-      {"entity_type": "email", "entity_text": "info@heidelberg-materials.com"},
-      {"entity_type": "phone", "entity_text": "+49 6221 481-0"}
+      {"entity_type": "person", "entity_text": "Anna Schneider"},
+      {"entity_type": "organization", "entity_text": "CloudBridge SE"},
+      {"entity_type": "email", "entity_text": "security@cloudbridge.example"},
+      {"entity_type": "phone", "entity_text": "+49 152 00000002"}
     ]
   },
   {
     "id": 3,
-    "text": "Dr. Anna Schmidt is the CEO of Siemens AG in Munich.",
+    "text": "Jonas Mueller, CTO at DataStream Corp, manages alerts@datastream.example and the portal https://datastream.example/portal.",
     "expected": [
-      {"entity_type": "person", "entity_text": "Anna Schmidt"},
-      {"entity_type": "organization", "entity_text": "Siemens AG"},
-      {"entity_type": "location", "entity_text": "Munich"}
+      {"entity_type": "person", "entity_text": "Jonas Mueller"},
+      {"entity_type": "title", "entity_text": "CTO"},
+      {"entity_type": "organization", "entity_text": "DataStream Corp"},
+      {"entity_type": "email", "entity_text": "alerts@datastream.example"},
+      {"entity_type": "url", "entity_text": "https://datastream.example/portal"}
     ]
   },
   {
     "id": 4,
-    "text": "Visit our website: https://www.snapaddy.com/en for more information.",
+    "text": "Emma Fischer besucht das SecureNet Ltd Team in Berlin. Kontakt: it@securenet.example.",
     "expected": [
-      {"entity_type": "url", "entity_text": "https://www.snapaddy.com/en"}
+      {"entity_type": "person", "entity_text": "Emma Fischer"},
+      {"entity_type": "organization", "entity_text": "SecureNet Ltd"},
+      {"entity_type": "location", "entity_text": "Berlin"},
+      {"entity_type": "email", "entity_text": "it@securenet.example"}
     ]
   },
   {
     "id": 5,
-    "text": "Peter Weber, CTO at SAP SE, can be reached at p.weber@sap.com",
+    "text": "David Klein from Alpha Solutions uses support@alphasolutions.example and +49 160 00000003 for incident reports in Munich.",
     "expected": [
-      {"entity_type": "person", "entity_text": "Peter Weber"},
-      {"entity_type": "organization", "entity_text": "SAP SE"},
-      {"entity_type": "email", "entity_text": "p.weber@sap.com"}
+      {"entity_type": "person", "entity_text": "David Klein"},
+      {"entity_type": "organization", "entity_text": "Alpha Solutions"},
+      {"entity_type": "email", "entity_text": "support@alphasolutions.example"},
+      {"entity_type": "phone", "entity_text": "+49 160 00000003"},
+      {"entity_type": "location", "entity_text": "Munich"}
     ]
   },
   {
     "id": 6,
-    "text": "Our office is located at Berliner Strasse 42, Frankfurt am Main.",
+    "text": "Sofia Bauer leitet das Response Center der NovaGrid AG in Frankfurt am Main.",
     "expected": [
+      {"entity_type": "person", "entity_text": "Sofia Bauer"},
+      {"entity_type": "organization", "entity_text": "NovaGrid AG"},
       {"entity_type": "location", "entity_text": "Frankfurt am Main"}
+    ]
+  },
+  {
+    "id": 7,
+    "text": "Mock company record: TechNova GmbH, Domain: technova.example, Country: Germany, Office: Hafenstrasse 8, Hamburg.",
+    "expected": [
+      {"entity_type": "organization", "entity_text": "TechNova GmbH"},
+      {"entity_type": "url", "entity_text": "technova.example"},
+      {"entity_type": "location", "entity_text": "Germany"},
+      {"entity_type": "address", "entity_text": "Hafenstrasse 8, Hamburg"}
+    ]
+  },
+  {
+    "id": 8,
+    "text": "CloudBridge SE monitors cloudbridge.example, the mock IP 198.51.100.24, and the Swedish office in Stockholm, Sweden.",
+    "expected": [
+      {"entity_type": "organization", "entity_text": "CloudBridge SE"},
+      {"entity_type": "url", "entity_text": "cloudbridge.example"},
+      {"entity_type": "ip_like", "entity_text": "198.51.100.24"},
+      {"entity_type": "location", "entity_text": "Stockholm"},
+      {"entity_type": "location", "entity_text": "Sweden"}
+    ]
+  },
+  {
+    "id": 9,
+    "text": "Escalation contacts: Lukas Weber <admin@technova.example>, Emma Fischer <it@securenet.example>, and Sofia Bauer <ops@novagrid.example>.",
+    "expected": [
+      {"entity_type": "person", "entity_text": "Lukas Weber"},
+      {"entity_type": "person", "entity_text": "Emma Fischer"},
+      {"entity_type": "person", "entity_text": "Sofia Bauer"},
+      {"entity_type": "email", "entity_text": "admin@technova.example"},
+      {"entity_type": "email", "entity_text": "it@securenet.example"},
+      {"entity_type": "email", "entity_text": "ops@novagrid.example"}
+    ]
+  },
+  {
+    "id": 10,
+    "text": "Visit https://alphasolutions.example/security and https://technova.example/status for mock incident dashboards.",
+    "expected": [
+      {"entity_type": "url", "entity_text": "https://alphasolutions.example/security"},
+      {"entity_type": "url", "entity_text": "https://technova.example/status"}
+    ]
+  },
+  {
+    "id": 11,
+    "text": "United Kingdom branch: SecureNet Ltd, Phone: +44 7700 900123, Domain: securenet.example, Contact: Emma Fischer.",
+    "expected": [
+      {"entity_type": "organization", "entity_text": "SecureNet Ltd"},
+      {"entity_type": "phone", "entity_text": "+44 7700 900123"},
+      {"entity_type": "url", "entity_text": "securenet.example"},
+      {"entity_type": "person", "entity_text": "Emma Fischer"},
+      {"entity_type": "location", "entity_text": "United Kingdom"}
+    ]
+  },
+  {
+    "id": 12,
+    "text": "Testing placeholder values only: 192.0.2.10, 203.0.113.77, datastream.example, and support@datastream.example.",
+    "expected": [
+      {"entity_type": "ip_like", "entity_text": "192.0.2.10"},
+      {"entity_type": "ip_like", "entity_text": "203.0.113.77"},
+      {"entity_type": "url", "entity_text": "datastream.example"},
+      {"entity_type": "email", "entity_text": "support@datastream.example"}
     ]
   }
 ]
