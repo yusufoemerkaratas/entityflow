@@ -29,7 +29,7 @@ This is not a toy OCR page bolted onto an NLP app. The OCR output is connected t
 - Review entities with `pending`, `approved`, and `rejected` states persisted in PostgreSQL.
 - Detect duplicate documents through SHA-256 content hashes.
 - Run the full stack with Docker Compose: PostgreSQL, FastAPI, and the React frontend.
-- Use a terminal-inspired frontend theme designed to make the OCR workflow feel like a focused engineering tool.
+- Use a dark operations-style frontend with a live dashboard, extraction workspace, and OCR review surfaces that share one visual system.
 - Validate backend behavior with pytest and frontend type safety with TypeScript builds.
 
 **Extracted entity types:** person, organization, location, title, address, email, phone, url, ip_like.
@@ -37,6 +37,12 @@ This is not a toy OCR page bolted onto an NLP app. The OCR output is connected t
 ---
 
 ## Main Workflows
+
+### 0. Dashboard Monitoring
+
+1. Open the dashboard homepage to inspect document volume, extraction activity, and review throughput.
+2. Review the latest critical findings and recent entities from the same workspace shell.
+3. Jump directly into upload or OCR flows from the dashboard actions.
 
 ### 1. Text-to-Entity Extraction
 
@@ -298,6 +304,10 @@ docs/ocr-frontend-verification.md
 ---
 
 ## Screenshots
+
+### Dashboard
+
+![Dashboard Home](docs/screenshots/dashboard_home.png)
 
 ### Text Extraction
 
