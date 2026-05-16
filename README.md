@@ -2,7 +2,7 @@
 
 **OCR-first multimodal entity extraction workspace** for turning messy text and image uploads into structured, reviewable entities.
 
-EntityFlow is built as a portfolio-grade full-stack AI project: FastAPI + PostgreSQL on the backend, React + TypeScript on the frontend, deterministic extractors for reliability, optional LLM extraction for recall, and OCR-powered Computer Vision input for image-to-entity workflows.
+EntityFlow is a full-stack application built with FastAPI + PostgreSQL on the backend and React + TypeScript on the frontend, combining deterministic extractors, optional LLM extraction, and OCR-powered image-to-entity workflows.
 
 The core product idea is simple:
 
@@ -16,7 +16,7 @@ text or image -> normalized document -> regex / spaCy / LLM extraction -> human 
 
 Many real documents do not start as clean text. They arrive as screenshots, scans, labels, flyers, business cards, or photos. EntityFlow demonstrates how a multimodal review system can accept both typed text and image input, normalize them into one document model, run multiple extraction strategies, and let a reviewer validate the result.
 
-This is not a toy OCR page bolted onto an NLP app. The OCR output is connected to the same `documents`, `extractions`, and `entities` pipeline used by text uploads.
+The OCR output is connected to the same `documents`, `extractions`, and `entities` pipeline used by text uploads, so image-derived text follows the same storage, extraction, and review flow as typed input.
 
 ---
 
@@ -190,20 +190,22 @@ curl -X POST "http://localhost:8000/vision/ocr" \
   -F "file=@docs/demo-images/bizay-business-card-mock.png"
 ```
 
-Example response:
+Representative response:
 
 ```json
 {
   "filename": "bizay-business-card-mock.png",
   "image_width": 1100,
   "image_height": 700,
-  "extracted_text": "EMMA FISCHER NN\nSecurity Manager\n+49 160 00000003\nsupport@alphasolutions.example\nwww.alphasolutions.example A\\",
-  "raw_text": "EMMA FISCHER NN\nSecurity Manager\n+49 160 00000003\nsupport@alphasolutions.example\nwww.alphasolutions.example A\\\n",
-  "char_count": 110,
+  "extracted_text": "EMMA FISCHER\nSecurity Manager\n+49 160 00000003\nsupport@alphasolutions.example",
+  "raw_text": "EMMA FISCHER\nSecurity Manager\n+49 160 00000003\nsupport@alphasolutions.example\n",
+  "char_count": 83,
   "is_empty": false,
   "engine": "tesseract"
 }
 ```
+
+The exact OCR text will vary with image quality, font choice, and preprocessing.
 
 ### OCR plus entity extraction
 
@@ -384,6 +386,8 @@ Optional OCR overrides:
 
 ## Future Work
 
+- **Asynchronous Task Queues:** Decoupling OCR and LLM inference from the main FastAPI thread using **Celery and Redis/RabbitMQ** to handle high-volume document ingestion without API timeouts.
+- **Entity Resolution:** Implementing **Fuzzy Matching (e.g., Levenshtein distance)** to detect and merge duplicate entities such as "John Doe" vs "Jon Doe" before human review.
 - OCR confidence scoring and line-level metadata.
 - Better OCR preprocessing presets for scanned documents versus photos.
 - Dataset-based OCR evaluation.
