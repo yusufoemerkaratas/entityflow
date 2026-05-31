@@ -1,403 +1,778 @@
 # EntityFlow
 
-**OCR-first multimodal entity extraction workspace** for turning messy text and image uploads into structured, reviewable entities.
+**OCR-first full-stack workspace for extracting, validating and reviewing structured entities from unstructured text and image inputs.**
 
-EntityFlow is a full-stack application built with FastAPI + PostgreSQL on the backend and React + TypeScript on the frontend, combining deterministic extractors, optional LLM extraction, and OCR-powered image-to-entity workflows.
+EntityFlow is a portfolio project focused on a practical software problem: unstructured information rarely becomes useful just because a model produced a text answer. In many real workflows, extracted information has to be structured, validated, stored, reviewed and made available through reliable interfaces.
 
-The core product idea is simple:
-
-```text
-text or image -> normalized document -> regex / spaCy / LLM extraction -> human review
-```
+The project combines OCR, rule-based extraction, NLP-based extraction and optional LLM-assisted extraction with a backend-first review workflow. The goal is not to present a production AI platform, but to show how GenAI-adjacent processing can be connected to REST APIs, database models, validation logic and human-in-the-loop review.
 
 ---
 
-## Why It Matters
+## Table of Contents
 
-Many real documents do not start as clean text. They arrive as screenshots, scans, labels, flyers, business cards, or photos. EntityFlow demonstrates how a multimodal review system can accept both typed text and image input, normalize them into one document model, run multiple extraction strategies, and let a reviewer validate the result.
-
-The OCR output is connected to the same `documents`, `extractions`, and `entities` pipeline used by text uploads, so image-derived text follows the same storage, extraction, and review flow as typed input.
-
----
-
-## Current Capabilities
-
-- Upload text manually, from `.txt` / `.md` files, or from images through OCR.
-- Extract entities with three complementary strategies: regex, German spaCy NER, and an optional LLM extractor.
-- Convert image text into `source_type=image_ocr` documents and run the same extractor pipeline on OCR-derived text.
-- Compare extractor outputs side by side for the same document.
-- Review entities with `pending`, `approved`, and `rejected` states persisted in PostgreSQL.
-- Surface dashboard summary metrics and recent findings through the same backend API used by the homepage.
-- Detect duplicate documents through SHA-256 content hashes.
-- Run the full stack with Docker Compose: PostgreSQL, FastAPI, and the React frontend.
-- Use a dark operations-style frontend with a live dashboard, extraction workspace, and OCR review surfaces that share one visual system.
-- Validate backend behavior with pytest and frontend type safety with TypeScript builds.
-
-**Extracted entity types:** person, organization, location, title, address, email, phone, url, ip_like.
-
----
-
-## Main Workflows
-
-### 0. Dashboard Monitoring
-
-1. Open the dashboard homepage to inspect document volume, extraction activity, and review throughput.
-2. Review the latest critical findings and recent entities from the same workspace shell.
-3. Jump directly into upload or OCR flows from the dashboard actions.
-
-### 1. Text-to-Entity Extraction
-
-1. Create a document from pasted text or an uploaded text file.
-2. Run one or more extractors: `regex`, `spacy_de`, or `llm_mini`.
-3. Compare extraction results across extractor families.
-4. Approve or reject entities in the review UI.
-
-### 2. Image-to-Entity Extraction
-
-1. Upload an image in the OCR workspace.
-2. The backend validates and decodes the image.
-3. OpenCV preprocessing prepares the image for OCR.
-4. Tesseract extracts raw text.
-5. The backend normalizes the OCR text and returns OCR metadata.
-6. The OCR text can be stored as a document with `source_type=image_ocr`.
-7. The OCR pipeline can run `regex`, `spacy_de`, and `llm_mini` on the OCR-derived document.
-8. Extracted entities are displayed with search and type filters.
-
-### 3. Human-in-the-Loop Review
-
-Reviewer decisions are stored on the entity rows, so extraction is not treated as a final answer. The UI supports correction-oriented workflows where a human can inspect raw text, hover extracted spans, and approve or reject candidates.
+- [Project Snapshot](#project-snapshot)
+- [Why This Project Exists](#why-this-project-exists)
+- [GenAI Workflow Development Relevance](#genai-workflow-development-relevance)
+- [Core Workflow](#core-workflow)
+- [High-Level Architecture](#high-level-architecture)
+- [Key Features](#key-features)
+- [Tech Stack](#tech-stack)
+- [Current Implementation Scope](#current-implementation-scope)
+- [What This Project Does Not Claim](#what-this-project-does-not-claim)
+- [Backend Design](#backend-design)
+- [Data Model](#data-model)
+- [Extraction Pipeline](#extraction-pipeline)
+- [Optional LLM-Assisted Extraction](#optional-llm-assisted-extraction)
+- [Human-in-the-Loop Review](#human-in-the-loop-review)
+- [API-Oriented Design](#api-oriented-design)
+- [Frontend Role](#frontend-role)
+- [Project Structure](#project-structure)
+- [Local Setup](#local-setup)
+- [Environment Variables](#environment-variables)
+- [Testing Strategy](#testing-strategy)
+- [Engineering Notes](#engineering-notes)
+- [Known Limitations](#known-limitations)
+- [Possible Next Steps](#possible-next-steps)
+- [Repository](#repository)
 
 ---
 
-## Architecture
+## Project Snapshot
+
+| Area | Description |
+|---|---|
+| Project type | Full-stack portfolio prototype |
+| Main focus | Structured extraction from unstructured text and image inputs |
+| Backend | Python, FastAPI, PostgreSQL |
+| Frontend | React, TypeScript, Vite |
+| AI-adjacent parts | OCR, regex extraction, spaCy NLP, optional LLM-assisted extraction |
+| Workflow concept | Document input → extraction run → entity candidates → validation → human review |
+| Engineering focus | REST APIs, database-backed workflow, validation, reviewability, Docker-based local setup |
+| Maturity | Prototype / portfolio project, not a production platform |
+
+---
+
+## Why This Project Exists
+
+Many AI-assisted demos stop at a free-text answer. EntityFlow focuses on the next step: turning uncertain extracted information into structured, reviewable and API-accessible data.
+
+Typical examples of this problem are:
+
+- extracting names, organizations, dates or identifiers from scanned documents,
+- turning OCR output into structured candidates,
+- validating extracted values before they are used,
+- avoiding duplicate-like entity records,
+- keeping a human reviewer in control,
+- exposing results through predictable backend interfaces.
+
+The project is intentionally backend-oriented. The important part is not only that information can be extracted, but that extraction is represented as a workflow with state, validation, storage and review.
+
+---
+
+## GenAI Workflow Development Relevance
+
+EntityFlow is **not** an AI agent framework and does **not** claim production-level agent development experience. However, it contains several building blocks that are relevant for GenAI workflow development:
+
+- mapping user or document input to backend processing steps,
+- structuring processing steps behind REST APIs,
+- using optional LLM-assisted extraction as one step in a controlled workflow,
+- validating and deduplicating uncertain results,
+- making model-assisted output reviewable by a human,
+- storing extraction runs and entity candidates instead of relying on one-shot text output,
+- documenting system behavior and workflow boundaries,
+- designing a prototype in a way that can later be extended with tests, monitoring or additional integrations.
+
+This makes the project useful as a practical bridge between classic backend development and GenAI-adjacent workflow thinking.
+
+---
+
+## Core Workflow
 
 ```mermaid
-flowchart TD
-    textInput["Paste text or upload .txt/.md"] --> createDocument["POST /documents"]
-    createDocument --> documents[("documents")]
-    documents --> runExtraction["POST /documents/:id/extract"]
-    runExtraction --> extractors["Regex / spaCy / LLM extractors"]
-    extractors --> extractions[("extractions")]
-    extractions --> entities[("entities")]
-    entities --> reviewUi["Entity comparison and review UI"]
-    reviewUi --> reviewEntity["PATCH /entities/:id/review"]
-    reviewEntity --> entities
-
-    imageInput["Upload image"] --> ocrEndpoint["POST /vision/ocr"]
-    ocrEndpoint --> preprocess["OpenCV OCR preprocessing"]
-    preprocess --> tesseract["Tesseract OCR"]
-    tesseract --> ocrText["Normalized OCR text"]
-    ocrText --> ocrExtract["POST /vision/ocr/extract"]
-    ocrExtract --> imageDocument["Create or reuse image_ocr document"]
-    imageDocument --> documents
-    imageDocument --> extractors
+flowchart LR
+    A[Text or Image Input] --> B[Document API]
+    B --> C[Text Normalization / OCR]
+    C --> D[Rule-based Extraction]
+    C --> E[spaCy NLP Extraction]
+    C --> F[Optional LLM-assisted Extraction]
+    D --> G[Validation]
+    E --> G
+    F --> G
+    G --> H[Duplicate Detection]
+    H --> I[Reviewable Entity Candidates]
+    I --> J[Human Review]
+    J --> K[Confirmed / Corrected / Rejected Entities]
 ```
 
-**OCR-first note:** `POST /vision/inspect` is kept as a deprecated compatibility route, but it now returns the OCR-first response shape. The main Sprint 5 value proposition no longer depends on contour-based region detection.
+The main idea is simple: extraction output should not directly become final truth. It should become a candidate that can be checked, corrected and stored in a structured way.
 
 ---
 
-## Data Model
+## High-Level Architecture
 
-```text
-documents
-  id, raw_text, source_type, content_hash, char_count, uploaded_at
+```mermaid
+flowchart TB
+    subgraph Client[Client Layer]
+        UI[React / TypeScript Review Interface]
+    end
 
-extractions
-  id, document_id, extractor_name, extractor_version, processing_ms, created_at
+    subgraph Backend[FastAPI Backend]
+        API[REST API Layer]
+        DOC[Document Service]
+        RUN[Extraction Run Service]
+        EXT[Extraction Pipeline]
+        VAL[Validation / Deduplication]
+        REV[Review Workflow]
+    end
 
-entities
-  id, extraction_id, entity_type, entity_text, normalized_value,
-  confidence, span_start, span_end, review_status
+    subgraph Extraction[Extraction Components]
+        OCR[OCR / Tesseract]
+        RULES[Regex Rules]
+        NLP[spaCy NLP]
+        LLM[Optional LLM Extraction]
+    end
 
-vision_inspections / vision_detections
-  Legacy compatibility tables from the earlier visual-inspection prototype.
-  The current workflow is OCR-first and uses documents/extractions/entities.
+    subgraph Data[Persistence]
+        DB[(PostgreSQL)]
+    end
+
+    UI --> API
+    API --> DOC
+    API --> RUN
+    RUN --> EXT
+    EXT --> OCR
+    EXT --> RULES
+    EXT --> NLP
+    EXT --> LLM
+    EXT --> VAL
+    VAL --> REV
+    DOC --> DB
+    RUN --> DB
+    VAL --> DB
+    REV --> DB
 ```
 
 ---
 
-## Extractor Strategy
+## Key Features
 
-| Extractor | Role | Strength | Tradeoff |
-|---|---|---|---|
-| `RegexExtractor` | Deterministic patterns | High precision for email, phone, URL | Limited semantic understanding |
-| `SpacyExtractor` | Classical NER | Good for person, organization, location | Model-dependent and language-sensitive |
-| `LlmExtractor` | Structured LLM extraction | Better recall for noisy or complex text | Requires API configuration and network access |
-| OCR + extractors | Image-to-entity bridge | Turns screenshots/photos into normal documents | OCR quality depends on image clarity |
+### Document-oriented workflow
 
-Evaluation is intentionally lightweight and reproducible. Metrics are calculated against the mock golden set in `data/samples.json`:
+EntityFlow treats each input as a document-like object. A document can be text-based or image-based, depending on the input source and current implementation state.
 
-```bash
-python scripts/evaluate.py
-```
+### OCR-first processing
 
-The included golden set currently contains 12 fictional samples with `.example` domains, mock phone numbers, and placeholder IP-like values for safe local testing.
+For image-based inputs, OCR can be used to convert visual information into text that can be processed further.
 
-The evaluation script:
+### Multiple extraction approaches
 
-- normalizes small schema differences such as `company -> organization`
-- reports missed entities so extractor regressions are easier to inspect
-- marks `llm_mini` as `SKIPPED` when API/network access is unavailable instead of reporting a misleading zero-score run
+The project is designed around a combination of extraction methods:
 
-The printed metrics are a local benchmark for the included sample set, not a production accuracy claim.
+- regex-based extraction for predictable patterns,
+- spaCy-based NLP for language-oriented entity detection,
+- optional LLM-assisted extraction for more flexible candidate generation.
+
+### Reviewable entity candidates
+
+Extracted values are represented as entity candidates. They can be reviewed instead of being accepted automatically.
+
+### Human-in-the-loop review
+
+The review workflow is important because AI/OCR/NLP outputs can be incomplete or wrong. A reviewer should be able to confirm, correct or reject candidates.
+
+### API-based structure
+
+The workflow is exposed through backend resources such as documents, extraction runs and entities. This makes the system easier to test, extend and integrate.
+
+### Docker-based local setup
+
+Docker Compose is used to keep backend, frontend and database setup easier to reproduce locally.
 
 ---
 
 ## Tech Stack
 
-| Area | Technologies |
+| Layer | Technology |
 |---|---|
-| Backend | Python, FastAPI, SQLAlchemy |
-| OCR / Vision | OpenCV, Tesseract OCR |
-| NLP | Regex, spaCy `de_core_news_sm`, optional LLM API |
+| Backend | Python, FastAPI |
+| Data validation / schemas | Pydantic |
 | Database | PostgreSQL |
+| ORM / database access | SQLAlchemy or comparable backend persistence layer |
+| OCR | Tesseract / OCR pipeline |
+| NLP | spaCy, regex-based extraction |
+| Optional LLM step | LLM API integration, only when configured |
 | Frontend | React, TypeScript, Vite |
-| DevOps | Docker, Docker Compose, GitHub Actions CI |
-| Testing | pytest, FastAPI TestClient, TypeScript build |
+| Local infrastructure | Docker, Docker Compose |
+| Testing direction | pytest, API-level tests, validation tests |
+
+The exact implementation can evolve, but the project is intentionally built around backend workflows, structured data and reviewability.
 
 ---
 
-## API Overview
+## Current Implementation Scope
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/health` | DB-aware health check |
-| `GET` | `/dashboard/summary` | Return dashboard metrics, recent findings, and review activity |
-| `POST` | `/documents` | Create or reuse a text document |
-| `GET` | `/documents/{id}` | Fetch raw document text and metadata |
-| `POST` | `/documents/{id}/extract?extractor=...` | Run `regex`, `spacy_de`, or `llm_mini` |
-| `GET` | `/documents/{id}/extractions` | Compare extractor outputs for one document |
-| `PATCH` | `/entities/{id}/review` | Persist `approved` or `rejected` review state |
-| `POST` | `/vision/ocr` | Extract readable text from an uploaded image |
-| `POST` | `/vision/ocr/extract?extractors=regex,spacy_de,llm_mini` | OCR image, create/reuse document, run one or more extractors |
-| `POST` | `/vision/inspect` | Deprecated compatibility alias for OCR-first extraction |
+EntityFlow should be understood as a **prototype**. Its purpose is to demonstrate architecture, workflow thinking and practical implementation skills.
 
-Full Swagger docs are available at:
+The project focuses on:
+
+- backend resource modeling,
+- REST API structure,
+- document and extraction-run concepts,
+- entity candidate modeling,
+- OCR/NLP/regex/optional LLM extraction flow,
+- validation and duplicate-detection thinking,
+- human review workflow,
+- Docker-based local development.
+
+Depending on the current repository state, some parts may be implemented more fully than others. Sections marked as strategy or possible next steps are not meant to imply finished production features.
+
+---
+
+## What This Project Does Not Claim
+
+This project does **not** claim to be:
+
+- a production-ready AI platform,
+- an enterprise document processing system,
+- a full agentic AI framework,
+- a replacement for human review,
+- a fully monitored production service,
+- a benchmarked OCR or NLP engine,
+- a complete end-to-end commercial product.
+
+It is a practical student/portfolio project that shows how backend engineering, data processing and GenAI-adjacent components can be connected in a structured way.
+
+---
+
+## Backend Design
+
+The backend is the central part of the project. It is responsible for:
+
+- accepting and representing input documents,
+- starting extraction runs,
+- storing processing results,
+- exposing entity candidates,
+- applying validation and duplicate-detection logic,
+- supporting review actions,
+- making the workflow accessible through REST APIs.
+
+### Backend responsibility diagram
+
+```mermaid
+flowchart TD
+    A[Incoming Request] --> B[API Router]
+    B --> C[Schema Validation]
+    C --> D[Service Layer]
+    D --> E[Database Models]
+    D --> F[Extraction Components]
+    F --> G[Candidate Entities]
+    G --> H[Validation / Deduplication]
+    H --> I[Review State]
+    I --> J[API Response]
+```
+
+### Why this matters
+
+For AI-assisted applications, backend design is especially important because the system has to manage uncertainty. EntityFlow does this by treating extraction results as stored, reviewable objects instead of immediate final answers.
+
+---
+
+## Data Model
+
+The conceptual model is based on a few core resources.
+
+```mermaid
+erDiagram
+    DOCUMENT ||--o{ EXTRACTION_RUN : has
+    EXTRACTION_RUN ||--o{ ENTITY_CANDIDATE : produces
+    ENTITY_CANDIDATE ||--o{ REVIEW_DECISION : receives
+
+    DOCUMENT {
+        int id
+        string filename
+        string source_type
+        text raw_text
+        datetime created_at
+    }
+
+    EXTRACTION_RUN {
+        int id
+        int document_id
+        string status
+        string extraction_mode
+        datetime started_at
+        datetime finished_at
+    }
+
+    ENTITY_CANDIDATE {
+        int id
+        int extraction_run_id
+        string label
+        string value
+        float confidence
+        string source
+        string review_status
+    }
+
+    REVIEW_DECISION {
+        int id
+        int entity_candidate_id
+        string decision
+        string corrected_value
+        datetime reviewed_at
+    }
+```
+
+This model is intentionally simple enough for a portfolio prototype, but it still shows the important separation between source input, processing attempt, extracted candidates and review decisions.
+
+---
+
+## Extraction Pipeline
+
+EntityFlow uses a pipeline-oriented view of extraction.
+
+```mermaid
+flowchart TD
+    A[Document Input] --> B{Input Type}
+    B -->|Image| C[OCR]
+    B -->|Text| D[Text Normalization]
+    C --> D
+    D --> E[Regex Extraction]
+    D --> F[spaCy Extraction]
+    D --> G{LLM configured?}
+    G -->|Yes| H[Optional LLM Extraction]
+    G -->|No| I[Skip LLM Step]
+    E --> J[Merge Candidates]
+    F --> J
+    H --> J
+    I --> J
+    J --> K[Validate Candidates]
+    K --> L[Detect Duplicate-like Results]
+    L --> M[Store Reviewable Entities]
+```
+
+### Regex extraction
+
+Regex-based extraction is useful for predictable patterns such as:
+
+- dates,
+- identifiers,
+- e-mail-like values,
+- fixed labels,
+- repeated structured fields.
+
+### spaCy extraction
+
+spaCy-based extraction is useful for language-oriented entity candidates, for example:
+
+- persons,
+- organizations,
+- locations,
+- other entity-like spans depending on model and language support.
+
+### Optional LLM-assisted extraction
+
+The LLM step is optional. It should support extraction, not replace validation or review.
+
+---
+
+## Optional LLM-Assisted Extraction
+
+The LLM-assisted step is designed as a controlled part of the pipeline. It should not be treated as an uncontrolled final answer generator.
+
+### Intended role of the LLM step
+
+- suggest structured entity candidates,
+- help with less predictable input formats,
+- support extraction where simple rules are insufficient,
+- return structured outputs that can be validated,
+- remain optional and configurable.
+
+### Safety boundary
+
+The project should keep the following boundary clear:
+
+> LLM output is a candidate, not final truth.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant API as FastAPI Backend
+    participant Pipeline as Extraction Pipeline
+    participant LLM as Optional LLM Service
+    participant DB as PostgreSQL
+    participant Reviewer as Human Reviewer
+
+    User->>API: Upload / submit document
+    API->>DB: Store document
+    API->>Pipeline: Start extraction run
+    Pipeline->>LLM: Request structured candidates if configured
+    LLM-->>Pipeline: Return candidate entities
+    Pipeline->>Pipeline: Validate and normalize candidates
+    Pipeline->>DB: Store reviewable entities
+    Reviewer->>API: Confirm / correct / reject entity
+    API->>DB: Store review decision
+```
+
+### Why this is relevant for GenAI workflow development
+
+The important engineering idea is not simply using an LLM. The important idea is connecting LLM-assisted output to:
+
+- backend resources,
+- APIs,
+- validation logic,
+- review state,
+- data persistence,
+- technical documentation.
+
+---
+
+## Human-in-the-Loop Review
+
+Human-in-the-loop review is a central concept in EntityFlow.
+
+```mermaid
+stateDiagram-v2
+    [*] --> extracted
+    extracted --> pending_review
+    pending_review --> confirmed
+    pending_review --> corrected
+    pending_review --> rejected
+    corrected --> confirmed
+    confirmed --> [*]
+    rejected --> [*]
+```
+
+### Review actions
+
+A reviewer should be able to:
+
+- inspect extracted candidates,
+- compare extracted values with the original input,
+- confirm correct entities,
+- correct wrong values,
+- reject irrelevant candidates,
+- keep the final structured output understandable.
+
+### Why reviewability matters
+
+OCR, NLP and LLM-based extraction can all fail. A reliable workflow should therefore make uncertainty visible and manageable.
+
+---
+
+## API-Oriented Design
+
+EntityFlow is designed around API resources rather than hidden scripts.
+
+### Conceptual API resources
+
+| Resource | Responsibility |
+|---|---|
+| Document | Store and represent source input |
+| Extraction Run | Track one processing attempt |
+| Entity Candidate | Represent extracted structured information |
+| Review Decision | Store human confirmation, correction or rejection |
+
+### Example endpoint directions
+
+The exact endpoint names may differ depending on implementation, but the conceptual API shape is:
 
 ```text
-http://localhost:8000/docs
+POST   /documents
+GET    /documents
+GET    /documents/{document_id}
+POST   /documents/{document_id}/extraction-runs
+GET    /extraction-runs/{run_id}
+GET    /extraction-runs/{run_id}/entities
+PATCH  /entities/{entity_id}/review
 ```
+
+### Mapping input to backend actions
+
+```mermaid
+flowchart LR
+    A[User action / document input] --> B[API endpoint]
+    B --> C[Backend schema validation]
+    C --> D[Service method]
+    D --> E[Database transaction]
+    D --> F[Extraction component]
+    F --> G[Structured candidate output]
+    G --> H[Review API]
+```
+
+This API-first thinking is important because practical AI-assisted workflows usually need to interact with existing systems rather than remain isolated demos.
 
 ---
 
-## Example Requests
+## Frontend Role
 
-### OCR only
+The frontend is not the main technical focus, but it supports the review workflow.
 
-```bash
-curl -X POST "http://localhost:8000/vision/ocr" \
-  -F "file=@docs/demo-images/bizay-business-card-mock.png"
+A React/TypeScript interface can be used to:
+
+- display documents,
+- show extraction runs,
+- list entity candidates,
+- expose review actions,
+- make corrections visible,
+- provide a simple human-in-the-loop experience.
+
+```mermaid
+flowchart TB
+    UI[React / TypeScript UI] --> A[Document List]
+    UI --> B[Extraction Run View]
+    UI --> C[Entity Candidate Table]
+    UI --> D[Review Actions]
+    D --> E[Confirm]
+    D --> F[Correct]
+    D --> G[Reject]
 ```
-
-Representative response:
-
-```json
-{
-  "filename": "bizay-business-card-mock.png",
-  "image_width": 1100,
-  "image_height": 700,
-  "extracted_text": "EMMA FISCHER\nSecurity Manager\n+49 160 00000003\nsupport@alphasolutions.example",
-  "raw_text": "EMMA FISCHER\nSecurity Manager\n+49 160 00000003\nsupport@alphasolutions.example\n",
-  "char_count": 83,
-  "is_empty": false,
-  "engine": "tesseract"
-}
-```
-
-The exact OCR text will vary with image quality, font choice, and preprocessing.
-
-### OCR plus entity extraction
-
-```bash
-curl -X POST "http://localhost:8000/vision/ocr/extract?extractors=regex,spacy_de,llm_mini" \
-  -F "file=@docs/demo-images/bizay-business-card-mock.png"
-```
-
-This creates or reuses an `image_ocr` document, runs the selected extractors, and returns grouped entity results.
-
-### Review an entity
-
-```bash
-curl -X PATCH "http://localhost:8000/entities/41/review" \
-  -H "Content-Type: application/json" \
-  -d '{"review_status":"approved"}'
-```
-
----
-
-## Quick Start
-
-```bash
-git clone https://github.com/yusufoemerkaratas/entityflow.git
-cd entityflow
-cp .env.example .env
-docker compose up --build
-```
-
-Open:
-
-```text
-Frontend: http://localhost:5173
-API docs: http://localhost:8000/docs
-```
-
-The Docker API image installs `tesseract-ocr`, so OCR works inside the container without requiring a local host installation.
-
----
-
-## Local Development
-
-### Backend
-
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-export DATABASE_URL=postgresql+psycopg2://entityflow:entityflow@localhost:5434/entityflow
-uvicorn app.api.main:app --reload
-```
-
-For OCR outside Docker, install Tesseract on your machine and make sure `tesseract` is available in `PATH`.
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-export VITE_API_BASE_URL=http://localhost:8000
-npm run dev
-```
-
----
-
-## Testing
-
-Backend OCR and extraction tests:
-
-```bash
-venv/bin/pytest tests/test_ocr_service.py tests/test_vision_ocr_api.py tests/test_vision_ocr_extraction_api.py tests/test_vision_api.py -q
-```
-
-Full backend test suite:
-
-```bash
-venv/bin/pytest -q
-```
-
-Local extractor evaluation:
-
-```bash
-venv/bin/python scripts/evaluate.py
-```
-
-This evaluation is designed for fast regression checking on the bundled mock dataset. If the optional LLM extractor cannot reach its configured API, the script will skip that extractor and still report the deterministic extractor results.
-
-Frontend build/type check:
-
-```bash
-npm --prefix frontend run build
-```
-
-Manual OCR frontend verification notes are documented in:
-
-```text
-docs/ocr-frontend-verification.md
-```
-
----
-
-## Screenshots
-
-### Dashboard
-
-![Dashboard Home](docs/screenshots/dashboard_home.png)
-
-### Text Extraction
-
-![Upload Page](docs/screenshots/upload_page.png)
-
-![Extractor Comparison View](docs/screenshots/comparison_view.png)
-
-![Entity Review](docs/screenshots/entity_review.png)
-
-### OCR / Vision Workflow
-
-![Vision Upload](docs/screenshots/vision-upload.png)
-
-![Vision Result](docs/screenshots/vision-result.png)
 
 ---
 
 ## Project Structure
 
+The repository is intended to be organized around backend, frontend and infrastructure files. The exact structure may evolve as the prototype is extended.
+
 ```text
 entityflow/
-├── app/
-│   ├── api/          # FastAPI routes for documents, extraction, review, OCR
-│   ├── db/           # SQLAlchemy engine and PostgreSQL schema
-│   ├── extractors/   # Regex, spaCy, and LLM extractor implementations
-│   ├── services/     # Shared extraction pipeline orchestration
-│   ├── vision/       # OCR service and OpenCV preprocessing utilities
-│   └── schemas/      # Pydantic request/response models
-├── frontend/         # React + TypeScript frontend
-├── tests/            # pytest unit and integration tests
-├── data/             # Mock golden sample set for local extractor evaluation
-├── docs/             # Demo scripts, architecture notes, screenshots
-└── scripts/          # Evaluation utilities
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── core/
+│   │   ├── models/
+│   │   ├── schemas/
+│   │   ├── services/
+│   │   └── main.py
+│   ├── tests/                  # intended / growing test area
+│   ├── requirements.txt
+│   └── Dockerfile
+│
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   └── Dockerfile
+│
+├── docker-compose.yml
+├── README.md
+└── .env.example                # optional, if included in the repository
 ```
+
+If the current repository structure differs slightly, the important separation remains:
+
+- backend API and processing logic,
+- frontend review interface,
+- database and local infrastructure,
+- documentation and test strategy.
 
 ---
 
-## Configuration
+## Local Setup
 
-Required:
+### 1. Clone the repository
 
-- `DATABASE_URL`
+```bash
+git clone https://github.com/yusufoemerkaratas/entityflow.git
+cd entityflow
+```
 
-Optional LLM extraction:
+### 2. Create environment file if needed
 
-- `LLM_API_KEY` or `OPENAI_API_KEY`
-- `LLM_BASE_URL`
-- `LLM_MODEL_NAME`
+If an example environment file exists:
 
-If you use Docker Compose as shipped in this repository, `docker-compose.yml` currently maps `LLM_MODEL_NAME` from `${LLM_MODEL}` in the environment. Outside Docker, the extractor reads `LLM_MODEL_NAME` directly.
+```bash
+cp .env.example .env
+```
 
-If these values are unset, or the runtime has no outbound network access, the main application still works with regex and spaCy extraction. `scripts/evaluate.py` will mark the LLM portion as skipped in that environment.
+Then adjust local values if needed.
 
-Optional OCR overrides:
+### 3. Start with Docker Compose
 
-- `TESSERACT_CMD`
-- `TESSERACT_LANG`
+```bash
+docker compose up --build
+```
+
+This should start the local development environment according to the services defined in `docker-compose.yml`.
+
+### 4. Stop containers
+
+```bash
+docker compose down
+```
+
+### 5. Reset local volumes if needed
+
+```bash
+docker compose down -v
+```
+
+Use this only when local database state should be removed.
+
+---
+
+## Environment Variables
+
+Typical environment variables for this kind of prototype include database configuration and optional LLM configuration.
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@db:5432/entityflow
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=entityflow
+
+# Optional LLM configuration
+LLM_PROVIDER=
+LLM_API_KEY=
+LLM_MODEL=
+```
+
+Do not commit real API keys or secrets.
+
+The optional LLM step should work only when explicitly configured. The rest of the extraction workflow should remain understandable without requiring an external AI service.
+
+---
+
+## Testing Strategy
+
+EntityFlow should be tested at the level where mistakes are most likely to affect workflow reliability.
+
+The current prototype focuses on backend workflow structure. The test suite can be expanded around API behavior, validation logic and review actions.
+
+Important test areas include:
+
+- document creation,
+- extraction run creation,
+- validation logic,
+- duplicate detection,
+- entity review actions,
+- API response behavior,
+- error handling for invalid inputs.
+
+### Example test categories
+
+```text
+tests/
+├── test_documents.py
+├── test_extraction_runs.py
+├── test_entities.py
+├── test_review_workflow.py
+└── test_validation.py
+```
+
+If backend tests are available, they can typically be run with:
+
+```bash
+cd backend
+pytest
+```
+
+### Why testing matters here
+
+For AI-assisted workflows, testing should not only check whether the application starts. It should also check whether uncertain extraction results are handled in a controlled way.
+
+Examples of useful behavior to test:
+
+- a document can be created,
+- an extraction run can be started,
+- extracted candidates are stored as entities,
+- duplicate-like entities can be detected,
+- a review decision changes entity state correctly,
+- invalid input is rejected with a clear error.
+
+---
+
+## Engineering Notes
+
+### Backend-first structure
+
+The project is intentionally not only a frontend demo. Most of the important logic is modeled in the backend through resources, services and database-backed workflows.
+
+### Transparent processing
+
+Extraction is represented as a process rather than a hidden one-shot function. This makes it easier to reason about errors, review state and future improvements.
+
+### Reviewability over automation hype
+
+The project does not claim that AI or OCR output is always correct. It focuses on structured candidates and reviewable results.
+
+### API integration mindset
+
+The workflow is designed in a way that could be connected to other systems through APIs. This is important for practical AI-assisted applications.
+
+### Reproducibility
+
+Docker Compose makes the project easier to run locally and reduces environment-specific setup problems.
+
+---
+
+## Known Limitations
+
+EntityFlow is a prototype and has limitations:
+
+- it is not production infrastructure,
+- OCR quality depends on input quality and OCR configuration,
+- LLM-assisted extraction is optional and depends on external configuration,
+- extraction quality needs further evaluation on realistic datasets,
+- review workflows can be extended with roles, audit logs and permissions,
+- tests and documentation should grow together with implementation,
+- monitoring and deployment hardening are not the current focus.
+
+These limitations are intentional to keep the project honest and understandable.
+
+---
+
+## Possible Next Steps
+
+Possible improvements include:
+
+- expanding API-level tests,
+- adding more validation rules,
+- improving duplicate detection,
+- adding confidence scoring per extraction source,
+- adding a clearer audit trail for review decisions,
+- improving frontend review usability,
+- adding sample documents for reproducible demos,
+- documenting concrete API examples with request and response bodies,
+- adding structured LLM prompts and output schemas,
+- separating extraction providers behind a cleaner interface,
+- adding lightweight monitoring for extraction runs.
 
 ---
 
 ## What This Project Demonstrates
 
-- Full-stack product thinking around an end-to-end AI workflow.
-- Clean API design with typed request/response schemas.
-- OCR integration that feeds the same data model as normal text input.
-- Multiple extraction strategies with different precision/recall tradeoffs.
-- Human review and persistence instead of one-shot extraction.
-- Practical Dockerized development with PostgreSQL, Tesseract, FastAPI, and React.
-- Testable backend services and typed frontend integration.
+EntityFlow demonstrates practical experience with:
+
+- Python backend development,
+- FastAPI-based REST APIs,
+- PostgreSQL-backed data modeling,
+- structured workflow design,
+- OCR-assisted text extraction,
+- regex-based extraction,
+- spaCy-based NLP processing,
+- optional LLM-assisted extraction,
+- validation and duplicate-detection thinking,
+- human-in-the-loop review,
+- React/TypeScript frontend basics,
+- Docker-based local development,
+- technical documentation of AI-adjacent workflows.
+
+For GenAI workflow development contexts, the most relevant parts are:
+
+- mapping input to backend actions,
+- designing structured API resources,
+- connecting AI-assisted output to validation logic,
+- making uncertain results reviewable,
+- documenting technical workflows clearly.
 
 ---
 
-## Future Work
+## Repository
 
-- **Asynchronous Task Queues:** Decoupling OCR and LLM inference from the main FastAPI thread using **Celery and Redis/RabbitMQ** to handle high-volume document ingestion without API timeouts.
-- **Entity Resolution:** Implementing **Fuzzy Matching (e.g., Levenshtein distance)** to detect and merge duplicate entities such as "John Doe" vs "Jon Doe" before human review.
-- OCR confidence scoring and line-level metadata.
-- Better OCR preprocessing presets for scanned documents versus photos.
-- Dataset-based OCR evaluation.
-- Optional EasyOCR or transformer-based OCR adapter.
-- LLM-assisted correction of noisy OCR text.
-- Export reviewed entities as CSV or JSON.
+GitHub: [github.com/yusufoemerkaratas/entityflow](https://github.com/yusufoemerkaratas/entityflow)
 
 ---
 
-## Author
+## Final Note
 
-**Yusuf Ömer Karataş** — Informatik @ THWS Würzburg  
-[LinkedIn](https://www.linkedin.com/in/yusuf-ömer-karatas-330952219) · [yusufoemer.karatas@study.thws.de](mailto:yusufoemer.karatas@study.thws.de)
+EntityFlow is a focused portfolio prototype. It is intentionally honest about its scope: it does not claim to be a complete production AI platform, but it demonstrates how backend engineering, structured data processing and optional GenAI-assisted extraction can be combined in a reviewable workflow.
